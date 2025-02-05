@@ -23,5 +23,6 @@ public class SmartSolveAutomationService {
         //webDriver.quit();
         //跳转到RRU dashboard对应的界面
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx%7B-qm-%7DItmId%7B-eq-%7D0000000000000002147484680");
+        //export文件
     }
 }
