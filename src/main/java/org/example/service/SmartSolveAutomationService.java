@@ -73,10 +73,14 @@ public class SmartSolveAutomationService {
 //
         //等待80s文件下载完毕以后 关闭浏览器
         try {
-            Thread.sleep(60000);
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        // todo 打印出当前页面的完整 HTML 内容
+//        String pageSource = webDriver.getPageSource();
+//        System.out.println(pageSource);
         //webDriver.quit();
 
         //读取已处理numbers文件的log
@@ -92,17 +96,63 @@ public class SmartSolveAutomationService {
         WebElement totalItems = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[5]/span"));
         WebElement nextPageButton = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[3]/input[1]"));
 
-        System.out.println("Total Pages: " + totalPages.getText());
-        System.out.println("Total Items: " + totalItems.getText());
 
-        JavascriptExecutor js = (JavascriptExecutor) webDriver;
-        js.executeScript("arguments[0].click();", nextPageButton);
-        System.out.println("Clicked the next page button!");
+        int totalPagesCount = Integer.parseInt(totalPages.getText());
+        int totalItemsCount = Integer.parseInt(totalItems.getText());
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        System.out.println("Total Pages: " + totalPagesCount);
+        System.out.println("Total Items: " + totalItemsCount);
+
+        for (int i = 1; i <= totalPagesCount; i++) {
+            // 处理当前页面的元素 根据tbody获取所有的行
+            // 找到表格的 tbody 的元素
+            WebElement tbody = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tbody"));
+            // 获取 div_resultGrid 下的所有 tr 元素 每个tr元素都是一个row
+            List<WebElement> rows = tbody.findElements(By.tagName("tr"));
+
+            for (WebElement row : rows) {
+                // 找到每行的第二个 td 元素（假设投诉编号在第二个 td 中）
+                List<WebElement> cells = row.findElements(By.tagName("td"));
+                if (cells.size() > 1) {
+                    WebElement cell_record_number = cells.get(1);
+                    String cellText_record_number = cell_record_number.getText().trim();
+                    WebElement cell_group = cells.get(4);
+                    String cellText_group = cell_group.getText().trim();
+                    if (cellText_record_number.length() > 0 && cellText_group.length() > 0) {
+                        System.out.print(cellText_record_number);
+                        System.out.print(" ");
+                        System.out.println(cellText_group);
+                    }
+                    if(complaintNumbers.contains(cellText_record_number)) {
+                        System.out.println("Complaint: " + cellText_record_number + " existed!");
+                    }
+                    // 检查文本内容是否与投诉编号匹配
+//                    if (cellText.equals(complaintNumber)) {
+//                        // 找到该行中的链接元素
+//                        WebElement link = row.findElement(By.cssSelector("td div span a"));
+//                        // 点击链接
+//                        link.click();
+//                        // 可以在这里添加等待页面加载的逻辑，例如使用 WebDriverWait
+//                        try {
+//                            Thread.sleep(30000); // 简单的等待 3 秒，实际使用中建议使用 WebDriverWait
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                        break; // 找到匹配的行后跳出内层循环
+//                    }
+                }
+            }
+            if (i < totalPagesCount) {
+                JavascriptExecutor js = (JavascriptExecutor) webDriver;
+                js.executeScript("arguments[0].click();", nextPageButton);
+                System.out.println("Clicked the next page button!");
+                // 点击了next page button以后等待10s
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         System.out.println("end!");
     }
