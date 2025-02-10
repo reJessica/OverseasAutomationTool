@@ -42,6 +42,23 @@
             <artifactId>httpclient5</artifactId>
             <version>5.2.1</version> <!-- 可根据实际情况调整版本 -->
         </dependency>
+        <!-- OpenCSV 用于处理 CSV 文件 -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.7.1</version>
+        </dependency>
+        <!-- Apache POI 用于处理 Excel 文件 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
     </dependencies>
 
     <build>
