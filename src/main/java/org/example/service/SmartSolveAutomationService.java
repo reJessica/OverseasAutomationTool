@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.example.util.FileReaderUtil.readCSVFile;
 import static org.example.util.FileReaderUtil.readExcelFile;
@@ -30,7 +31,7 @@ public class SmartSolveAutomationService {
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx");
         // 等待1分钟 来让用户登录！ 测试发现 上午需要登录 下午不需要登录
         try {
-            Thread.sleep(60000);
+            Thread.sleep(50000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -56,21 +57,7 @@ public class SmartSolveAutomationService {
         WebElement secondIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.id(secondIframeId)));
         webDriver.switchTo().frame(secondIframe);
         System.out.println("Switch to the second frame!");
-        // todo 移除export这个按键的步骤 可省略这个步骤 也可以减少等待时间
-//        // 等待“export button”元素出现并可点击
-//        WebElement exportButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/form/div[4]/div[7]/a")));
-//        System.out.println("find button!");
-//        // 点击“export button”
-//        try {
-//            Thread.sleep(15000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        // 使用 JavaScript 点击按钮
-//        JavascriptExecutor js = (JavascriptExecutor) webDriver;
-//        js.executeScript("arguments[0].click();", exportButton);
-//        System.out.println("Clicked the export button!");
-//
+
         //等待80s文件下载完毕以后 关闭浏览器
         try {
             Thread.sleep(30000);
@@ -81,19 +68,22 @@ public class SmartSolveAutomationService {
         // todo 打印出当前页面的完整 HTML 内容
 //        String pageSource = webDriver.getPageSource();
 //        System.out.println(pageSource);
+        // 保存 HTML 内容到文件
+//        try (FileWriter writer = new FileWriter("page_source.html")) {
+//            writer.write(pageSource);
+//            System.out.println("HTML 内容已保存到 page_source.html 文件中。");
+//        } catch (IOException e)
         //webDriver.quit();
 
         //读取已处理numbers文件的log
         String logFilePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\SiemensLog_Report_Number.csv";
         List<String> complaintNumbers = FileReaderUtil.readCSVFile(logFilePath);
 
-        //2024-00078345-1 用于测试
-        List<String> debugNumbers = new ArrayList<>();
-        debugNumbers.add("2024-00078345-1");
 
-        // 找到表格的 id="ctl05_resultGrid"的元素
+        // 页码相关的信息 和 下一页 的button
         WebElement totalPages = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[2]/span"));
         WebElement totalItems = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[5]/span"));
+        // todo 这个button会随着 页面的切换而失效 记得修改
         WebElement nextPageButton = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[3]/input[1]"));
 
 
@@ -102,7 +92,8 @@ public class SmartSolveAutomationService {
 
         System.out.println("Total Pages: " + totalPagesCount);
         System.out.println("Total Items: " + totalItemsCount);
-
+        // todo 用一个list来记录当日 符合条件的recordnumber
+        boolean flag = false;
         for (int i = 1; i <= totalPagesCount; i++) {
             // 处理当前页面的元素 根据tbody获取所有的行
             // 找到表格的 tbody 的元素
@@ -112,48 +103,311 @@ public class SmartSolveAutomationService {
 
             for (WebElement row : rows) {
                 // 找到每行的第二个 td 元素（假设投诉编号在第二个 td 中）
+                System.out.println("查看row的信息");
+                System.out.println(row);
                 List<WebElement> cells = row.findElements(By.tagName("td"));
                 if (cells.size() > 1) {
                     WebElement cell_record_number = cells.get(1);
                     String cellText_record_number = cell_record_number.getText().trim();
                     WebElement cell_group = cells.get(4);
                     String cellText_group = cell_group.getText().trim();
-                    if (cellText_record_number.length() > 0 && cellText_group.length() > 0) {
+                    if (cellText_record_number.length() > 0 && cellText_group.length() > 0 && cellText_group.contains("CN_DX")) {
                         System.out.print(cellText_record_number);
                         System.out.print(" ");
                         System.out.println(cellText_group);
+
+                        // 已经初步找到合适的数据RRU_CN_DX Group User的record number 接下来查询出在西门子log中不存在的新数据
+                        if(complaintNumbers.contains(cellText_record_number)) {
+                            System.out.println("Complaint: " + cellText_record_number + " existed!");
+                        }else{
+                            //不存在的数据
+                            System.out.println("Complaint: " + cellText_record_number + " is new record number!");
+                            //获取到新record number对应的网页链接
+                            WebElement link = cells.get(0).findElement(By.cssSelector("div span a"));
+                            link.click();
+                            flag = true;
+                            try {
+                                Thread.sleep(60000); // 等待30秒，实际使用中建议使用 WebDriverWait 这个报告的页面反应非常慢
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            // 获取所有窗口句柄
+                            Set<String> windowHandles_1 = webDriver.getWindowHandles();
+                            System.out.println("所有窗口的句柄的长度");
+                            System.out.println(windowHandles_1.size());
+                            System.out.println(windowHandles_1);
+                            System.out.println("当前句柄-跳转具体record number report之前的句柄");
+                            System.out.println(webDriver.getWindowHandle());
+                            // 获取最新窗口的句柄
+                            String latestWindowHandle = null;
+                            for (String handle : windowHandles_1) {
+                                latestWindowHandle = handle;
+                            }
+                            // 切换到最新窗口
+                            if (latestWindowHandle != null) {
+                                webDriver.switchTo().window(latestWindowHandle);
+                                System.out.println("已切换到最新窗口");
+                            }
+                            // todo 处理报告里的内容 获取关键字段
+                            //切换到对应的iframe
+                            WebDriverWait wait_content = new WebDriverWait(webDriver, Duration.ofSeconds(15));
+                            WebElement iframe_content = wait_content.until(ExpectedConditions.presenceOfElementLocated(By.id("record-pane-content-iframe")));
+                            webDriver.switchTo().frame(iframe_content);
+                            System.out.println("Switch to complaint content frame!");
+
+                            //点击 details
+                            WebElement detailsButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/h3/div/a"));
+                            JavascriptExecutor js_go = (JavascriptExecutor) webDriver;
+                            js_go.executeScript("arguments[0].click();", detailsButton);
+                            System.out.println("Clicked the details button!");
+                            // 点击了details button以后等待5s
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            //刷新窗口 因为我有了新的下拉窗口
+                            // 获取所有窗口句柄
+                            Set<String> windowHandles_2 = webDriver.getWindowHandles();
+                            System.out.println("所有窗口的句柄的长度");
+                            System.out.println(windowHandles_2.size());
+                            System.out.println(windowHandles_2);
+                            System.out.println("当前句柄-点击了details以后的句柄");
+                            System.out.println(webDriver.getWindowHandle());
+                            // 获取最新窗口的句柄
+                            latestWindowHandle = null;
+                            for (String handle : windowHandles_2) {
+                                latestWindowHandle = handle;
+                            }
+                            // 切换到最新窗口
+                            if (latestWindowHandle != null) {
+                                webDriver.switchTo().window(latestWindowHandle);
+                                System.out.println("已切换到最新窗口");
+                            }
+
+                            WebDriverWait wait_toggle = new WebDriverWait(webDriver, Duration.ofSeconds(15));
+                            WebElement iframe_toggle = wait_toggle.until(ExpectedConditions.presenceOfElementLocated(By.id("record-pane-content-iframe")));
+                            webDriver.switchTo().frame(iframe_toggle);
+                            System.out.println("Switch to complaint toggle frame!");
+
+                            //点击 regulartory  reports toggle paneal todo 看看能不能不点toggle 直接点击对应的FDA对应的report
+                            WebElement reportButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[28]/div/h3/span"));
+                            JavascriptExecutor js_report = (JavascriptExecutor) webDriver;
+                            js_report.executeScript("arguments[0].click();", reportButton);
+                            System.out.println("Clicked the regulatory report toggle panel button!");
+
+                            //todo 遍历并且找到closed的FDA的link
+
+                            //刷新窗口 因为我有了新的下拉窗口
+                            // 获取所有窗口句柄
+                            Set<String> windowHandles_3 = webDriver.getWindowHandles();
+                            System.out.println("所有窗口的句柄的长度");
+                            System.out.println(windowHandles_3.size());
+                            System.out.println(windowHandles_3);
+                            System.out.println("当前句柄-点击了details以后的句柄");
+                            System.out.println(webDriver.getWindowHandle());
+                            // 获取最新窗口的句柄
+                            latestWindowHandle = null;
+                            for (String handle : windowHandles_3) {
+                                latestWindowHandle = handle;
+                            }
+                            // 切换到最新窗口
+                            if (latestWindowHandle != null) {
+                                webDriver.switchTo().window(latestWindowHandle);
+                                System.out.println("已切换到最新窗口");
+                            }
+
+
+                            WebDriverWait wait_fda = new WebDriverWait(webDriver, Duration.ofSeconds(15));
+                            WebElement iframe_fda = wait_fda.until(ExpectedConditions.presenceOfElementLocated(By.id("record-pane-content-iframe")));
+                            webDriver.switchTo().frame(iframe_fda);
+                            System.out.println("Switch to complaint regularoty report frame!");
+
+                            String pageSource = webDriver.getPageSource();
+                            // 保存 HTML 内容到文件
+                            try (FileWriter writer = new FileWriter("complaint_content_regulatory_report.html")) {
+                                writer.write(pageSource);
+                                System.out.println("HTML 内容已保存到 complaint_content_regulatory_report.html 文件中。");
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            //点击 fda 对应的tbody的元素 看看能不能获取到
+                            WebElement reports_tbody = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[28]/div/div/div[2]/div/div/div[1]/div[2]/div/table/tbody"));
+                            System.out.println("fdaButton get daole " + reports_tbody);
+
+                            List<WebElement> rows_reports = reports_tbody.findElements(By.tagName("tr"));
+
+                            // 从第二个 tr 标签开始遍历（索引为 1）
+                            for (int j = 1; j < rows_reports.size(); j++) {
+                                WebElement row_r = rows_reports.get(j);
+                                // 获取当前 tr 下的所有 td 元素
+                                List<WebElement> cells_r = row_r.findElements(By.tagName("td"));
+
+                                String regulatoryBody = null;
+                                String status = null;
+
+                                if (cells_r.size() > 1) {
+                                    // 获取第二个 td 元素
+                                    WebElement secondTd = cells_r.get(1);
+                                    status = cells_r.get(10).getText();
+                                    try {
+                                        // 定位第二个 td 中的超链接元素
+                                        Thread.sleep(5000);
+                                        WebElement link_fda = secondTd.findElement(By.cssSelector("div.control-container a.pHyperLink"));
+                                        // 点击超链接
+                                        regulatoryBody = link_fda.getText();
+                                        System.out.println(regulatoryBody + " " + status);
+                                        System.out.println();
+                                        if (regulatoryBody.contains("FDA") && status.equals("CLOSED")){
+                                            link_fda.click();
+                                            // 可以在这里添加等待新页面加载的代码，例如等待某个特定元素出现
+                                            // WebElement newPageElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("newPageElementId")));
+                                            // 处理新页面的逻辑，例如获取页面标题
+                                            System.out.println("进入FDA报告的新页面: " + webDriver.getTitle());
+                                            Thread.sleep(10000);
+                                            clickViewReportAndExtractField();
+                                        }
+
+                                    } catch (Exception e) {
+                                        System.out.println("未找到超链接或点击失败: " + e.getMessage());
+                                    }
+                                }
+                            }
+//                            JavascriptExecutor js_fda = (JavascriptExecutor) webDriver;
+//                            js_fda.executeScript("arguments[0].click();", fdaButton);
+//                            System.out.println("Clicked the regulatory report toggle panel button!");
+
+                            try {
+                                Thread.sleep(10000); // 等待30秒，实际使用中建议使用 WebDriverWait
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            // 跳转回前一个页面
+                            webDriver.navigate().back();
+                            // 由于返回上一个页面的时候会弹出All changes since last save will be lost!的alert框 所以出现这个弹窗以后就点击确认即可
+                            try {
+                                // 等待警告框出现
+                                WebDriverWait wait_alert = new WebDriverWait(webDriver, Duration.ofSeconds(5));
+                                wait_alert.until(ExpectedConditions.alertIsPresent());
+                                // 获取警告框
+                                org.openqa.selenium.Alert alert = webDriver.switchTo().alert();
+                                // 获取警告框的文本信息
+                                String alertText = alert.getText();
+                                System.out.println("Alert text: " + alertText);
+                                // 这里可以根据具体需求选择接受或者取消警告框
+                                // 接受警告框（点击确定）
+                                alert.accept();
+                                // 取消警告框（点击取消）
+                                // alert.dismiss();
+                            } catch (org.openqa.selenium.NoAlertPresentException e) {
+                                // 如果没有警告框弹出，继续执行后续操作
+                                System.out.println("No alert present.");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            if (flag) {
+                                System.out.println("成功跳转一次页面 接下来尝试回退上一个页面 完成多个页面的跳转");
+                                break;
+                            }
+                        }
                     }
-                    if(complaintNumbers.contains(cellText_record_number)) {
-                        System.out.println("Complaint: " + cellText_record_number + " existed!");
-                    }
-                    // 检查文本内容是否与投诉编号匹配
-//                    if (cellText.equals(complaintNumber)) {
-//                        // 找到该行中的链接元素
-//                        WebElement link = row.findElement(By.cssSelector("td div span a"));
-//                        // 点击链接
-//                        link.click();
-//                        // 可以在这里添加等待页面加载的逻辑，例如使用 WebDriverWait
-//                        try {
-//                            Thread.sleep(30000); // 简单的等待 3 秒，实际使用中建议使用 WebDriverWait
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                        break; // 找到匹配的行后跳出内层循环
-//                    }
                 }
             }
-            if (i < totalPagesCount) {
-                JavascriptExecutor js = (JavascriptExecutor) webDriver;
-                js.executeScript("arguments[0].click();", nextPageButton);
-                System.out.println("Clicked the next page button!");
-                // 点击了next page button以后等待10s
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            // todo 这里返回页面以后 需要sleep 要不会报no such element的error 或者需要切换回原先的句柄？？？
+//            try {
+//                Thread.sleep(15000); // 等待15秒
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            if (i < totalPagesCount) {
+//                JavascriptExecutor js = (JavascriptExecutor) webDriver;
+//                js.executeScript("arguments[0].click();", nextPageButton);
+//                System.out.println("Clicked the next page button!");
+//                // 点击了next page button以后等待10s
+//                try {
+//                    Thread.sleep(5000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+            if (flag) {
+                System.out.println("成功跳转一次页面 最外层循环结束");
+                break;
             }
         }
         System.out.println("end!");
+    }
+
+    public void clickViewReportAndExtractField(){
+        // todo 在新页面中点击view report 然后在开启的新页面中 提取出template表需要的字段 某些字段无法提取 需要汇报
+        // 需要切换一下窗口句柄 因为新增了一个窗口
+        // 获取所有窗口句柄
+        Set<String> windowHandles_1 = webDriver.getWindowHandles();
+        System.out.println("所有窗口的句柄的长度");
+        System.out.println(windowHandles_1.size());
+        System.out.println(windowHandles_1);
+        System.out.println("当前句柄-点击FDA开启了新页面之前的句柄");
+        System.out.println(webDriver.getWindowHandle());
+        // 获取最新窗口的句柄
+        String latestWindowHandle = null;
+        for (String handle : windowHandles_1) {
+            latestWindowHandle = handle;
+        }
+        // 切换到最新窗口
+        if (latestWindowHandle != null) {
+            webDriver.switchTo().window(latestWindowHandle);
+            System.out.println("已切换到最新窗口");
+            System.out.println(webDriver.getWindowHandle());
+        }
+
+        String pageSource = webDriver.getPageSource();
+        // 保存 HTML 内容到文件
+        try (FileWriter writer = new FileWriter("page_before_click_view_report.html")) {
+            writer.write(pageSource);
+            System.out.println("HTML 内容已保存到 page_before_click_view_report.html 文件中。");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // /html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[1]/div/div/div[3]/ul/li[4]/span
+
+        //点击 details
+        WebElement detailsButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[1]/div/div/div[3]/ul/li[4]/span"));
+        JavascriptExecutor js_go = (JavascriptExecutor) webDriver;
+        js_go.executeScript("arguments[0].click();", detailsButton);
+        System.out.println("Clicked the details button in new webpage");
+
+        Set<String> windowHandles_2 = webDriver.getWindowHandles();
+        System.out.println("所有窗口的句柄的长度");
+        System.out.println(windowHandles_2.size());
+        System.out.println(windowHandles_2);
+        System.out.println("当前句柄-点击details开启了新页面之前的句柄");
+        System.out.println(webDriver.getWindowHandle());
+        // 获取最新窗口的句柄
+        latestWindowHandle = null;
+        for (String handle : windowHandles_2) {
+            latestWindowHandle = handle;
+        }
+        // 切换到最新窗口
+        if (latestWindowHandle != null) {
+            webDriver.switchTo().window(latestWindowHandle);
+            System.out.println("已切换到最新窗口");
+            System.out.println(webDriver.getWindowHandle());
+        }
+
+        //点击 view report
+        // /html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[2]/div/div[1]/div/div[1]/div/ul/li[2]/div[2]/a
+        WebElement vieweportButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[2]/div/div[1]/div/div[1]/div/ul/li[2]/div[2]/a"));
+        JavascriptExecutor js_view = (JavascriptExecutor) webDriver;
+        js_view.executeScript("arguments[0].click();", vieweportButton);
+        System.out.println("Clicked the vieweportButton in new webpage");
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("进入view report界面");
     }
 }

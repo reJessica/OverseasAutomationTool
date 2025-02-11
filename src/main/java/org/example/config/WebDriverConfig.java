@@ -13,7 +13,7 @@ import java.io.File;
 public class WebDriverConfig {
     @Bean
     public WebDriver webDriver() {
-        // 指定 ChromeDriver 的路径
+        // 指定 ChromeDriver 的路径 可以自定义 这个驱动是从网上找的下载的
         String driverPath = "C:\\Users\\z0052cmr\\Downloads\\chromedriver-win64-unzipped\\chromedriver-win64\\chromedriver.exe";
         File driverFile = new File(driverPath);
         if (driverFile.exists()) {
