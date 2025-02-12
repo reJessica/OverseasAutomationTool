@@ -303,64 +303,80 @@ public class SmartSolveAutomationService {
                                 }
                             }
                             System.out.println("所有的regulatory reports遍历完毕 接下来应该关闭当前窗口 回到dashboard界面");
-                            boolean alertFound = false;
-                            int backCount = 0;
-                            while (!alertFound) {
-                                try {
-                                    // 点击 back 操作
-                                    webDriver.navigate().back();
-                                    backCount++;
-                                    System.out.println("点击了 back " + backCount + " 次");
-                                    // 等待警告框出现
-                                    WebDriverWait wait_alert = new WebDriverWait(webDriver, Duration.ofSeconds(5));
-                                    wait_alert.until(ExpectedConditions.alertIsPresent());
-                                    // 获取警告框
-                                    org.openqa.selenium.Alert alert = webDriver.switchTo().alert();
-                                    // 获取警告框的文本信息
-                                    String alertText = alert.getText();
-                                    System.out.println("Alert text: " + alertText);
-                                    // 接受警告框（点击确定）
-                                    alert.accept();
-                                    alertFound = true;
-                                    Thread.sleep(5000);
-                                    // 刷新页面 然后重新定位到 iframe 去
-                                    Set<String> windowHandles_back_to_dash = webDriver.getWindowHandles();
-                                    System.out.print("所有窗口的句柄的长度 ");
-                                    System.out.println(windowHandles_back_to_dash.size());
-                                    System.out.print("所有窗口的句柄的内容 ");
-                                    System.out.println(windowHandles_back_to_dash);
-                                    System.out.print("当前句柄为了遍历下一个行 row 刷新页面 ");
-                                    System.out.println(webDriver.getWindowHandle());
-                                    // 获取最新窗口的句柄
-                                    String latestWindowHandle_back_to_dash = null;
-                                    for (String handle : windowHandles_back_to_dash) {
-                                        latestWindowHandle_back_to_dash = handle;
-                                    }
-                                    // 切换到最新窗口
-                                    if (latestWindowHandle_back_to_dash != null) {
-                                        webDriver.switchTo().window(latestWindowHandle_back_to_dash);
-                                        System.out.println("为了遍历下一行刷新窗口");
-                                    }
-                                    Thread.sleep(10000);
-                                    // 切换到第一层 iframe
-                                    WebDriverWait wait_back_to_dash_1 = new WebDriverWait(webDriver, Duration.ofSeconds(15));
-                                    WebElement iframe_11 = wait_back_to_dash_1.until(ExpectedConditions.presenceOfElementLocated(By.id("search-pane-content-iframe")));
-                                    webDriver.switchTo().frame(iframe_11);
-                                    System.out.println("back to dash - Switch to another frame!");
-                                    // 切换到第二层 iframe
-                                    String secondIframeId_back_to_dash_1 = "wpManager_wp202144868_wp790622277_iframe1";
-                                    WebElement secondIframe_22 = wait.until(ExpectedConditions.presenceOfElementLocated(By.id(secondIframeId_back_to_dash_1)));
-                                    webDriver.switchTo().frame(secondIframe_22);
-                                    System.out.println("back to dash - Switch to the second frame!");
-                                    Thread.sleep(5000);
-                                } catch (org.openqa.selenium.NoAlertPresentException e) {
-                                    // 如果没有警告框弹出，继续循环
-                                    System.out.println("No alert present. 继续点击 back...");
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                            //第一次点击
+                            try {
+                                Thread.sleep(10000); // 等待30秒，实际使用中建议使用 WebDriverWait
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            // 跳转回前一个页面 todo 如果完成了 view report 和 如果没有进入 的处理逻辑是不是不一样
+                            webDriver.navigate().back();
+                            System.out.println("点击了back一次");
+
+                            try {
+                                Thread.sleep(5000); // 等待30秒，实际使用中建议使用 WebDriverWait
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            // 跳转回前一个页面 todo 如果完成了 view report 和 如果没有进入 的处理逻辑是不是不一样
+                            webDriver.navigate().back();
+                            System.out.println("点击了back两次");
+
+                            // 由于返回上一个页面的时候会弹出All changes since last save will be lost!的alert框 所以出现这个弹窗以后就点击确认即可
+                            try {
+                                // 等待警告框出现
+                                WebDriverWait wait_alert = new WebDriverWait(webDriver, Duration.ofSeconds(5));
+                                wait_alert.until(ExpectedConditions.alertIsPresent());
+                                // 获取警告框
+                                org.openqa.selenium.Alert alert = webDriver.switchTo().alert();
+                                // 获取警告框的文本信息
+                                String alertText = alert.getText();
+                                System.out.println("Alert text: " + alertText);
+                                // 这里可以根据具体需求选择接受或者取消警告框
+                                // 接受警告框（点击确定）
+                                alert.accept();
+                                // 取消警告框（点击取消）
+                                // alert.dismiss();
+                                Thread.sleep(5000);
+                                //刷新页面 然后重新定位到iframe去
+                                Set<String> windowHandles_back_to_dash = webDriver.getWindowHandles();
+                                System.out.print("所有窗口的句柄的长度 ");
+                                System.out.println(windowHandles_back_to_dash.size());
+                                System.out.print("所有窗口的句柄的内容 ");
+                                System.out.println(windowHandles_back_to_dash);
+                                System.out.print("当前句柄为了遍历下一个行row刷新页面 ");
+                                System.out.println(webDriver.getWindowHandle());
+                                // 获取最新窗口的句柄
+                                String latestWindowHandle_back_to_dash = null;
+                                for (String handle : windowHandles_back_to_dash) {
+                                    latestWindowHandle_back_to_dash = handle;
                                 }
+                                // 切换到最新窗口
+                                if (latestWindowHandle_back_to_dash != null) {
+                                    webDriver.switchTo().window(latestWindowHandle_back_to_dash);
+                                    System.out.println("为了遍历下一行刷新窗口");
+                                }
+                                Thread.sleep(10000);
+                                // 切换到第一层iframe
+                                WebDriverWait wait_back_to_dash_1 = new WebDriverWait(webDriver, Duration.ofSeconds(15));
+                                WebElement iframe_11 = wait_back_to_dash_1.until(ExpectedConditions.presenceOfElementLocated(By.id("search-pane-content-iframe")));
+                                webDriver.switchTo().frame(iframe_11);
+                                System.out.println("back to dash - Switch to another frame!");
+
+                                // 切换到第二层iframe
+                                String secondIframeId_back_to_dash_1 = "wpManager_wp202144868_wp790622277_iframe1";
+                                WebElement secondIframe_22 = wait.until(ExpectedConditions.presenceOfElementLocated(By.id(secondIframeId_back_to_dash_1)));
+                                webDriver.switchTo().frame(secondIframe_22);
+                                System.out.println("back to dash - Switch to the second frame!");
+                                Thread.sleep(5000);
+
+                            } catch (org.openqa.selenium.NoAlertPresentException e) {
+                                // 如果没有警告框弹出，继续执行后续操作
+                                System.out.println("No alert present.");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }finally {
+
                             }
                         }
                     }
