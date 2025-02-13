@@ -18,9 +18,4 @@ public class AutomationController {
         // todo 新建数据库 新建一张是log表 这里使用mybatis来实现 读取历史和写入新log记录
         return "automateAndDownloadFile Service End";
     }
-
-//    public String readAndWriteExcelFile(){
-//
-//        return
-//    }
 }

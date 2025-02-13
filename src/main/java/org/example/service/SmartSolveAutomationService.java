@@ -261,8 +261,8 @@ public class SmartSolveAutomationService {
 
                             //点击 fda 对应的tbody的元素 看看能不能获取到
                             WebElement reports_tbody = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[28]/div/div/div[2]/div/div/div[1]/div[2]/div/table/tbody"));
-                            System.out.println("fdaButton get daole " + reports_tbody);
-
+                            System.out.println("fdaButton 找到了 " + reports_tbody);
+                            // todo bugfix 需要处理tr页面的上下文切换逻辑
                             List<WebElement> rows_reports = reports_tbody.findElements(By.tagName("tr"));
 
                             // 从第二个 tr 标签开始遍历（索引为 1）
@@ -273,20 +273,22 @@ public class SmartSolveAutomationService {
 
                                 String regulatoryBody = null;
                                 String status = null;
+                                String followUpNumber = null;
 
                                 if (cells_r.size() > 1) {
                                     // 获取第二个 td 元素
                                     WebElement secondTd = cells_r.get(1);
                                     status = cells_r.get(10).getText();
+                                    followUpNumber = cells_r.get(11).getText();
                                     try {
                                         // 定位第二个 td 中的超链接元素
                                         Thread.sleep(5000);
                                         WebElement link_fda = secondTd.findElement(By.cssSelector("div.control-container a.pHyperLink"));
                                         // 点击超链接
                                         regulatoryBody = link_fda.getText();
-                                        System.out.println(regulatoryBody + " " + status);
-                                        System.out.println();
-                                        if (regulatoryBody.contains("FDA") && status.equals("CLOSED")){
+                                        System.out.println(regulatoryBody + " " + status + " follow up number: " + followUpNumber);
+                                        // todo 添加一个状态 判断 不是followup的报告
+                                        if (regulatoryBody.contains("FDA") && status.equals("CLOSED") && followUpNumber.isEmpty()) {
                                             link_fda.click();
                                             // 可以在这里添加等待新页面加载的代码，例如等待某个特定元素出现
                                             // WebElement newPageElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("newPageElementId")));
@@ -295,6 +297,8 @@ public class SmartSolveAutomationService {
                                             Thread.sleep(10000);
                                             clickViewReportAndExtractField();
                                             // 进入到这个if 块说明
+                                            // 找到当前的fda close 不是followup的唯一报告了 直接退出循环 break 不要删除
+                                            break;
                                         }
 
                                     } catch (Exception e) {
@@ -529,7 +533,7 @@ public class SmartSolveAutomationService {
         webDriver.switchTo().window(windowHandlesList.get(windowHandlesList.size() - 1));
         System.out.println(webDriver.getWindowHandle());
 
-        System.out.println("已经关闭了MDR页面 现在准备关闭FDA页面");
+        System.out.println("已经关闭了MDR页面");
 
         webDriver.close();
         windowHandlesList.remove(windowHandlesList.size() - 1);
@@ -545,30 +549,5 @@ public class SmartSolveAutomationService {
         System.out.print("现在list的长度应该是1 ");
         System.out.println(windowHandlesList.size());
         System.out.println(webDriver.getWindowHandle());
-
-    }
-
-
-    public void switchToLatestWindow(WebDriver driver, List<String> handlesList) {
-        Set<String> windowHandles = driver.getWindowHandles();
-        System.out.print("所有窗口的句柄的长度 ");
-        System.out.println(windowHandles.size());
-        System.out.print("所有窗口的句柄的内容 ");
-        System.out.println(windowHandles);
-        // 获取最新窗口的句柄
-        String latestWindowHandle = null;
-        for (String handle : windowHandles) {
-            latestWindowHandle = handle;
-        }
-        // 切换到最新窗口
-        if (latestWindowHandle != null) {
-            driver.switchTo().window(latestWindowHandle);
-            System.out.print("已切换到最新窗口 当前窗口为");
-            System.out.println(driver.getWindowHandle());
-            // 检查列表中是否已经存在该句柄，不存在则添加
-            if (!handlesList.contains(latestWindowHandle)) {
-                handlesList.add(latestWindowHandle);
-            }
-        }
     }
 }
