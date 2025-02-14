@@ -15,17 +15,7 @@ import java.util.List;
 
 public class FileReaderUtil {
 
-//    public static List<String> readFile(String filePath) {
-//        List<String> data_csv = new ArrayList<>();
-//        List<List<String>> data_xls = new ArrayList<>();
-//        if (filePath.endsWith(".csv")) {
-//            data_csv = readCSVFile(filePath);
-//            return data_csv;
-//        } else if (filePath.endsWith(".xls") || filePath.endsWith(".xlsx")) {
-//            data_xls = readExcelFile(filePath);
-//            return data_xls;
-//        }
-//    }
+
 
     public static List<String> readCSVFile(String filePath) {
         List<String> data = new ArrayList<>();
@@ -48,7 +38,7 @@ public class FileReaderUtil {
     public static List<List<String>> readExcelFile(String filePath) {
         List<List<String>> data = new ArrayList<>();
         try (FileInputStream file = new FileInputStream(new File(filePath));
-             Workbook workbook = new HSSFWorkbook(file)) {
+             Workbook workbook = getWorkbook(file)) {
             // 获取第一个工作表
             Sheet sheet = workbook.getSheetAt(0);
             // 遍历每一行
@@ -88,5 +78,16 @@ public class FileReaderUtil {
             e.printStackTrace();
         }
         return data;
+    }
+
+    private static Workbook getWorkbook(FileInputStream file) throws IOException {
+        Workbook workbook;
+        try {
+            workbook = new XSSFWorkbook(file); // 尝试读取.xlsx文件
+        } catch (Exception e) {
+            file.getChannel().position(0); // 重置文件指针
+            workbook = new HSSFWorkbook(file); // 尝试读取.xls文件
+        }
+        return workbook;
     }
 }

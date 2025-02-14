@@ -1,19 +1,23 @@
 package org.example.service;
 
 import org.example.util.FileReaderUtil;
+import org.example.util.TranslationUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.json.JsonOutput;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.sound.midi.spi.SoundbankReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -27,13 +31,36 @@ public class SmartSolveAutomationService {
     private WebDriver webDriver;
     // 在 SmartSolveAutomationService 类中添加一个成员变量来存储窗口句柄
     private List<String> windowHandlesList = new ArrayList<>();
+    private int count = 0;
+    private List<List<String>> textsNeedtoBeInserted = new ArrayList<>();
 
     public void automateAndDownloadFile() {
+        Instant start = Instant.now(); // 记录开始时间
+        // 测试 读取NMPA来的template文件
+        List<List<String>> data_template = readExcelFile("C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_new.xlsx");
+
+        // 提取更多需要的元素
+//        List<String> elementsToTranslate = new ArrayList<>();
+//        elementsToTranslate.add("i love china");
+//        // 添加更多元素...
+//
+//        List<String> translatedTexts = new ArrayList<>();
+//        for (String s : elementsToTranslate) {
+//            String text = s;
+//            String translatedText = TranslationUtil.translate(text);
+//            translatedTexts.add(translatedText);
+//        }
+//
+//        for (String s : translatedTexts) {
+//            System.out.println(s);
+//        }
+//        System.out.println("翻译完毕");
+
         // 导航到网站
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx");
-        // 等待1分钟 来让用户登录！ 测试发现 上午需要登录 下午不需要登录
+        // 等待1分钟 来让用户登录！ 测试发现 有时需要登录 有时不需要登录
         try {
-            Thread.sleep(30000);
+            Thread.sleep(50000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -60,9 +87,8 @@ public class SmartSolveAutomationService {
         webDriver.switchTo().frame(secondIframe);
         System.out.println("Switch to the second frame!");
 
-        //等待80s文件下载完毕以后 关闭浏览器
         try {
-            Thread.sleep(30000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -79,8 +105,6 @@ public class SmartSolveAutomationService {
         WebElement totalPages = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[2]/span"));
         WebElement totalItems = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[5]/span"));
         // todo 这个button会随着 页面的切换而失效 记得修改
-        //WebElement nextPageButton = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[3]/input[1]"));
-
 
         int totalPagesCount = Integer.parseInt(totalPages.getText());
         int totalItemsCount = Integer.parseInt(totalItems.getText());
@@ -108,7 +132,7 @@ public class SmartSolveAutomationService {
                     e.printStackTrace();
                 }
                 //这里我保存一下page source 看看 为什么获取不到td
-                String pageSource_debug = webDriver.getPageSource();
+                //String pageSource_debug = webDriver.getPageSource();
                 // 保存 HTML 内容到文件
 //                try (FileWriter writer = new FileWriter("debug_dashboard_get_tag_td.html")) {
 //                    writer.write(pageSource_debug);
@@ -132,7 +156,7 @@ public class SmartSolveAutomationService {
                     // 获取region字段
                     WebElement cell_region = cells.get(5);
                     String cellText_region= cell_region.getText().trim();
-                    System.out.println("开始判断是不是CN_DX字段");
+                    System.out.println("开始判断是不是CN_DX, 非CHINA地区 且非followup 字段");
                     if (cellText_record_number != null && cellText_record_number.length() > 0
                             && cellText_group != null && cellText_group.length() > 0 && cellText_group.contains("CN_DX")
                             && cellText_region != null && cellText_region.length() > 0 && !"CHINA".equals(cellText_region)) {
@@ -152,7 +176,7 @@ public class SmartSolveAutomationService {
                             WebElement link = cells.get(0).findElement(By.cssSelector("div span a"));
                             link.click();
                             try {
-                                Thread.sleep(60000); // 等待30秒，实际使用中建议使用 WebDriverWait 这个报告的页面反应非常慢
+                                Thread.sleep(40000); // 等待40秒，实际使用中建议使用 WebDriverWait 这个报告的页面反应非常慢
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -261,7 +285,7 @@ public class SmartSolveAutomationService {
 
                             //点击 fda 对应的tbody的元素 看看能不能获取到
                             WebElement reports_tbody = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[28]/div/div/div[2]/div/div/div[1]/div[2]/div/table/tbody"));
-                            System.out.println("fdaButton 找到了 " + reports_tbody);
+                            System.out.println("FDA Button 找到了 ");
                             // todo bugfix 需要处理tr页面的上下文切换逻辑
                             List<WebElement> rows_reports = reports_tbody.findElements(By.tagName("tr"));
 
@@ -282,20 +306,25 @@ public class SmartSolveAutomationService {
                                     followUpNumber = cells_r.get(11).getText();
                                     try {
                                         // 定位第二个 td 中的超链接元素
-                                        Thread.sleep(5000);
+                                        Thread.sleep(15000);
                                         WebElement link_fda = secondTd.findElement(By.cssSelector("div.control-container a.pHyperLink"));
-                                        // 点击超链接
                                         regulatoryBody = link_fda.getText();
                                         System.out.println(regulatoryBody + " " + status + " follow up number: " + followUpNumber);
                                         // todo 添加一个状态 判断 不是followup的报告
                                         if (regulatoryBody.contains("FDA") && status.equals("CLOSED") && followUpNumber.isEmpty()) {
-                                            link_fda.click();
+                                            //link_fda.click();
+                                            JavascriptExecutor js_fda_click = (JavascriptExecutor) webDriver;
+                                            js_fda_click.executeScript("arguments[0].click();", link_fda);
+                                            System.out.println("Clicked FDA button!");
+
                                             // 可以在这里添加等待新页面加载的代码，例如等待某个特定元素出现
                                             // WebElement newPageElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("newPageElementId")));
                                             // 处理新页面的逻辑，例如获取页面标题
                                             System.out.println("进入FDA报告的新页面: " + webDriver.getTitle());
                                             Thread.sleep(10000);
-                                            clickViewReportAndExtractField();
+                                            count++;
+                                            List<String> currentRow = new ArrayList<>();
+                                            clickViewReportAndExtractField(currentRow, cellText_record_number);
                                             // 进入到这个if 块说明
                                             // 找到当前的fda close 不是followup的唯一报告了 直接退出循环 break 不要删除
                                             break;
@@ -369,7 +398,7 @@ public class SmartSolveAutomationService {
                         }
                     }
                     else{
-                        System.out.println("不是CN_DX字段或者不满足region是CHINA 不进行后续判断");
+                        System.out.println("不满足条件 不进行后续判断");
                     }
                 }
             }
@@ -396,8 +425,7 @@ public class SmartSolveAutomationService {
 //            }
             // 获取next page button
             WebElement nextPageButton = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[3]/input[1]"));
-            System.out.println("看看获取到nextpage button没有");
-            System.out.println(nextPageButton.getText());
+
             try {
                 Thread.sleep(5000); // 等待5秒
             } catch (InterruptedException e) {
@@ -409,16 +437,21 @@ public class SmartSolveAutomationService {
                 System.out.println("Clicked the next page button!");
                 // 点击了next page button以后等待10s
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(8000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
-        System.out.println("end!");
+        Instant end = Instant.now(); // 记录结束时间
+        System.out.print("已经处理的报告数: ");
+        System.out.println(count);
+        long duration = Duration.between(start, end).toMinutes(); // 计算耗时（单位：分钟）
+        System.out.println("当前方法耗时: " + duration + " 分钟");
+        System.out.println("End!");
     }
 
-    public void clickViewReportAndExtractField(){
+    public void clickViewReportAndExtractField(List<String> currentRow, String cellText_record_number){
         // todo 在新页面中点击view report 然后在开启的新页面中 提取出template表需要的字段 某些字段无法提取 需要汇报
         // 需要切换一下窗口句柄 因为新增了一个窗口
         // 获取所有窗口句柄
@@ -486,7 +519,7 @@ public class SmartSolveAutomationService {
         WebElement vieweportButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[2]/div/div[1]/div/div[1]/div/ul/li[2]/div[2]/a"));
         JavascriptExecutor js_view = (JavascriptExecutor) webDriver;
         js_view.executeScript("arguments[0].click();", vieweportButton);
-        System.out.println("Clicked the vieweportButton in new webpage");
+        System.out.println("Clicked the view report button in new webpage");
 
         try {
             Thread.sleep(10000);
@@ -514,10 +547,174 @@ public class SmartSolveAutomationService {
             System.out.println(webDriver.getWindowHandle());
             windowHandlesList.add(webDriver.getWindowHandle());
         }
-
+        System.out.println("开始提取字段");
         //todo 逐步提取到这个MDR上的内容
         WebElement ageLabel = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[1]/div/label"));
         System.out.println(ageLabel.getText());
+
+        // 第一到五列 暂时填充为空字符串
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+
+        //产品批号 D4 serial number or lot number 二者选一
+        WebElement serialNumber= webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[7]/div/ul/li[2]/div/label[2]"));
+        System.out.print("SerialNumber ");
+        System.out.println(serialNumber.getText());
+
+        WebElement lotNumber = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[2]/div/ul/li[2]/div"));
+        System.out.print("LotNumber ");
+        System.out.println(lotNumber.getText());
+        if (serialNumber.getText().isEmpty()) {
+            currentRow.add(lotNumber.getText());
+        }else{
+            currentRow.add(serialNumber.getText());
+        }
+
+        //产品编号 UDI 生产日期 注意生产日期就是不填
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+
+        // 如果是试剂的话 MDR上有有效期这个字段 仪器的话没有有效期这个字段
+        WebElement expirationDate = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[5]/div/ul/li[2]/div"));
+        System.out.print("ExpirationDate ");
+        System.out.println(expirationDate.getText());
+        if (!expirationDate.getText().isEmpty()) {
+            currentRow.add(expirationDate.getText());
+        }else{
+            currentRow.add("");
+        }
+
+        // 事件发生日期
+        WebElement dateOfEvent = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[1]/div/ul/li[2]/div/label[2]"));
+        System.out.print("dateOfEvent ");
+        String stringDateOfEvent = dateOfEvent.getText();
+        System.out.println(stringDateOfEvent);
+        currentRow.add(stringDateOfEvent);
+
+        // 发现或者悉知日期 这个字段来自于西门子log 暂时不填
+        currentRow.add("");
+
+        // 伤害 类型 一般选为 其他
+        currentRow.add("其他");
+        // 伤害表现 不填
+        currentRow.add("");
+        // 姓名不填
+        currentRow.add("");
+
+        //出生日期 其实一般情况都不填
+        WebElement dateOfBirth= webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[3]/div/ul/li[2]/div"));
+        System.out.print("dateOfBirth ");
+        System.out.println(dateOfBirth.getText());
+        currentRow.add(dateOfBirth.getText());
+
+        //年龄单位  待选项是 岁月天 todo 还得处理
+        currentRow.add("岁");
+        //年龄 数字
+        //   /html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[2]
+        WebElement ageNumber = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[2]"));
+        System.out.print("age字段 ");
+        String ageNumberOriginalText = ageNumber.getText();
+        System.out.println("age原字段");
+        System.out.println(ageNumberOriginalText);
+        String newAgeNumberString = ageNumberOriginalText.replaceAll("[\n\r]+", "-");
+        System.out.println(newAgeNumberString);
+        currentRow.add(newAgeNumberString);
+
+        //sex
+        WebElement sex = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[5]/fieldset/div[1]/div/ul/li[2]/div"));
+        System.out.print("sex ");
+        String sexText = sex.getText();
+        System.out.println(sexText);
+        currentRow.add(sexText);
+
+        // 既往病史
+        WebElement historyIllness = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[7]/fieldset/div[1]/div/ul/li[2]/div/div/div"));
+        System.out.print("既往病史 ");
+        String historyIllnessOriginalText = historyIllness.getText();
+        currentRow.add(historyIllnessOriginalText);
+
+        // 故障表现
+        WebElement bug = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[17]/div/div/div/div/div[7]/fieldset/div[1]/div/div[1]/div/div[1]/div[3]/div/table/tbody/tr[2]/td[4]/div[1]/label[2]"));
+        System.out.println("故障表现 ");
+        String bugOriginalText = cellText_record_number + " " + bug.getText();
+        System.out.println(bugOriginalText);
+        currentRow.add(bugOriginalText);
+
+        //器械使用日期
+        currentRow.add(stringDateOfEvent);
+
+        //使用场所
+        currentRow.add("医疗机构");
+
+        //场所名称
+        //医院名称
+        WebElement facilityName = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[11]/div/div/div/div/div[1]/fieldset/div[9]/div/ul/li[2]/div/label[2]"));
+        System.out.print("facilityName ");
+        String stringfacilityName = facilityName.getText();
+        System.out.println(stringfacilityName);
+        //国家
+        WebElement countryName = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[11]/div/div/div/div/div[1]/fieldset/div[21]/div/ul/li[2]/div/div/div/label[1]"));
+        System.out.print("countryName ");
+        String stringCountryName = countryName.getText();
+        System.out.println(stringCountryName);
+        // 合并
+        currentRow.add(stringfacilityName + ", " + stringCountryName);
+
+        // 使用过程
+        //  /html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[4]/div/ul/li[2]/div/div/div
+        WebElement description = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[4]/div/ul/li[2]/div/div/div"));
+        System.out.print("使用过程 ");
+        String originalText = description.getText();
+        System.out.println(originalText);
+
+        WebElement B7 = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[6]/div/ul/li[2]/div/div/div"));
+        System.out.print("B7 ");
+        String B7OriginalText = B7.getText();
+
+        String originalText2 = originalText + " " +  B7OriginalText;
+        System.out.println("完整字段");
+        System.out.println(originalText2);
+        String newString = originalText2.replaceAll("[\n\r]+", " ");
+        System.out.println("替换换行符以后的字符串");
+        System.out.println(newString);
+
+        System.out.print("尝试翻译 ");
+        String translatedText = TranslationUtil.translate(newString);
+        System.out.println(translatedText);
+        currentRow.add(translatedText);
+
+        // 合并用药器械情况说明
+        currentRow.add("");
+
+        //是否展开了调查
+        currentRow.add("是");
+
+        //调查情况
+        WebElement h8 = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[17]/div/div/div/div/div[11]/fieldset/div[9]/div/ul/li[2]/div/div/div"));
+        System.out.print("h8 ");
+        String h8OriginalText = h8.getText();
+        System.out.println(h8OriginalText);
+        String h8OriginalText2 = h8OriginalText.replaceAll("[\n\r]+", " ");
+        System.out.println("h8替换换行符");
+        System.out.println(h8OriginalText2);
+        currentRow.add(h8OriginalText2);
+
+        //剩余七行
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+        currentRow.add("");
+
+
+        System.out.println("完成了一次row的add");
+        System.out.print("currentRow list的长度为 " + currentRow.size());
 
         //处理完当前MDR页面上的所有元素 关闭当前MD窗口
         webDriver.close();

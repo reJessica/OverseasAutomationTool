@@ -8,17 +8,17 @@ startButton.addEventListener('click', async () => {
         // 禁用按钮，防止重复点击
         startButton.disabled = true;
 
-        // 模拟进度条从 0% 到 100%
-        let progress = 0;
-        const interval = setInterval(() => {
-            if (progress < 100) {
-                progress++;
-                progressBar.style.width = progress + '%';
-                progressBar.textContent = progress + '%';
-            } else {
-                clearInterval(interval);
-            }
-        }, 100);
+        // // 模拟进度条从 0% 到 100%
+        // let progress = 0;
+        // const interval = setInterval(() => {
+        //     if (progress < 100) {
+        //         progress++;
+        //         progressBar.style.width = progress + '%';
+        //         progressBar.textContent = progress + '%';
+        //     } else {
+        //         clearInterval(interval);
+        //     }
+        // }, 100);
 
         // 调用后端接口
         const response = await fetch('/automation/start');
