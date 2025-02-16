@@ -38,6 +38,7 @@ public class SmartSolveAutomationService {
     private List<String> windowHandlesList = new ArrayList<>();
     private int count = 0;
     private List<List<String>> textsNeedtoBeInserted = new ArrayList<>();
+    private List<List<String>> textsNeedtoBeInserted_en = new ArrayList<>();
     private List<List<String>> log = new ArrayList<>();
 
     public void automateAndDownloadFile() {
@@ -304,8 +305,9 @@ public class SmartSolveAutomationService {
                                             Thread.sleep(10000);
                                             count++;
                                             List<String> currentRow = new ArrayList<>();
+                                            List<String> currentRowEnglish = new ArrayList<>();
                                             List<String> currentRowLog = new ArrayList<>();
-                                            clickViewReportAndExtractField(currentRow, cellText_record_number, currentRowLog);
+                                            clickViewReportAndExtractField(currentRow, currentRowEnglish, cellText_record_number, currentRowLog);
                                             // 找到当前的fda close 不是followup的唯一报告了 直接退出循环 break 不要删除
                                             break;
                                         }
@@ -409,13 +411,14 @@ public class SmartSolveAutomationService {
         long duration = Duration.between(start, end).toMinutes(); // 计算耗时（单位：分钟）
         System.out.println("当前方法耗时: " + duration + " 分钟");
         insertNewRowsToTemplate();
+        insertNewRowsToTemplate_en();
         backUpOutputs();
         writeCurrentDayRecordNumberIntoLog(appConfig.getLogFilePath());
 
         System.out.println("End!");
     }
 
-    public void clickViewReportAndExtractField(List<String> currentRow, String cellText_record_number, List<String> currentRowLog){
+    public void clickViewReportAndExtractField(List<String> currentRow, List<String> currentRowEnglish, String cellText_record_number, List<String> currentRowLog){
         // 需要切换一下窗口句柄 因为新增了一个窗口
         // 获取所有窗口句柄
         System.out.println("进入到clickViewReportAndExtractField函数");
@@ -517,10 +520,15 @@ public class SmartSolveAutomationService {
 
         // 第一到五列 暂时填充为空字符串
         currentRow.add(""); //1 产品名称
+        currentRowEnglish.add("");
         currentRow.add(""); //2 注册证编号
+        currentRowEnglish.add("");
         currentRow.add(""); //3 产地
+        currentRowEnglish.add("");
         currentRow.add(""); //4 管理类别
+        currentRowEnglish.add("");
         currentRow.add(""); //5 产品类别
+        currentRowEnglish.add("");
 
         //6 产品批号 D4 serial number or lot number 二者选一
         WebElement serialNumber = null;
@@ -543,8 +551,10 @@ public class SmartSolveAutomationService {
 
         if (serialNumber.getText().isEmpty() || serialNumber.getText().equals("N/A")) {
             currentRow.add(lotNumber.getText());
+            currentRowEnglish.add(lotNumber.getText());
         }else{
             currentRow.add(serialNumber.getText());
+            currentRowEnglish.add(serialNumber.getText());
         }
 
         //产品编号 UDI 生产日期 注意生产日期就是不填
@@ -555,12 +565,16 @@ public class SmartSolveAutomationService {
             System.out.print("Smn ");
             System.out.println(smn.getText());
             currentRow.add(smn.getText()); // 7
+            currentRowEnglish.add(smn.getText());
         }catch (NoSuchElementException e) {
             System.out.println("没找到 smn 也就是catalog number");
             currentRow.add(smn.getText());
+            currentRowEnglish.add(smn.getText());
         }
         currentRow.add(""); //8
+        currentRowEnglish.add("");
         currentRow.add(""); //9
+        currentRowEnglish.add("");
 
         // 如果是试剂的话 MDR上有有效期这个字段 仪器的话没有有效期这个字段 10
 
@@ -575,8 +589,10 @@ public class SmartSolveAutomationService {
         if (!expirationDate.getText().isEmpty()) {
             String newFormatDate = convertDate(expirationDate.getText());
             currentRow.add(newFormatDate);
+            currentRowEnglish.add(newFormatDate);
         }else{
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         // 事件发生日期 11
@@ -590,23 +606,30 @@ public class SmartSolveAutomationService {
             if (!stringDateOfEvent.isEmpty()) {
                 String newFormatEventDate = convertDate(stringDateOfEvent);
                 currentRow.add(newFormatEventDate);
+                currentRowEnglish.add(newFormatEventDate);
             } else {
                 currentRow.add("");
+                currentRowEnglish.add("");
             }
         } catch (NoSuchElementException e) {
             System.out.println("未找到 dateOfEvent 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         // 发现或者悉知日期 这个字段来自于西门子log 暂时不填 12
         currentRow.add("");
+        currentRowEnglish.add("");
 
         // 伤害 类型 一般选为 其他 13
         currentRow.add("其他");
+        currentRowEnglish.add("other");
         // 伤害表现 不填 14
         currentRow.add("");
+        currentRowEnglish.add("");
         // 姓名不填 15
         currentRow.add("");
+        currentRowEnglish.add("");
 
         //出生日期 其实一般情况都不填 16
 
@@ -616,9 +639,11 @@ public class SmartSolveAutomationService {
             System.out.print("dateOfBirth ");
             System.out.println(dateOfBirth.getText());
             currentRow.add(dateOfBirth.getText());
+            currentRowEnglish.add(dateOfBirth.getText());
         } catch (NoSuchElementException e) {
             System.out.println("未找到 dateOfBirth 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
 
@@ -648,18 +673,25 @@ public class SmartSolveAutomationService {
             // 填充
             if (timeUnit.equals("Years")) {
                 currentRow.add("岁");
+                currentRowEnglish.add("years");
             } else if (timeUnit.equals("Months")) {
                 currentRow.add("月");
+                currentRowEnglish.add("months");
             } else if (timeUnit.equals("Days")) {
                 currentRow.add("日");
+                currentRowEnglish.add("days");
             } else {
                 currentRow.add("");
+                currentRowEnglish.add("");
             }
             currentRow.add(numberForAge);
+            currentRowEnglish.add(numberForAge);
         } catch (NoSuchElementException e) {
             System.out.println("未找到 ageNumber 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         //sex
@@ -672,18 +704,23 @@ public class SmartSolveAutomationService {
             System.out.println(sexText);
             if (sexText.equals("Female")) {
                 currentRow.add("女");
+                currentRowEnglish.add("Female");
             } else if (sexText.equals("Male")) {
                 currentRow.add("男");
+                currentRowEnglish.add("Male");
             } else {
                 currentRow.add("");
+                currentRowEnglish.add("");
             }
         } catch (NoSuchElementException e) {
             System.out.println("未找到 sex 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         // 病历号
         currentRow.add(""); //20
+        currentRowEnglish.add("");
 
 
         // 既往病史 21
@@ -692,12 +729,16 @@ public class SmartSolveAutomationService {
             historyIllness = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[7]/fieldset/div[1]/div/ul/li[2]/div/div/div"));
             System.out.print("既往病史 ");
             String historyIllnessOriginalText = historyIllness.getText();
+            Thread.sleep(1000);
+            currentRowEnglish.add(historyIllnessOriginalText);
+
             String historyIllnessIranslateText = TranslationUtil.translate(historyIllnessOriginalText);
             Thread.sleep(1000);
             currentRow.add(historyIllnessIranslateText);
         } catch (NoSuchElementException e) {
             System.out.println("未找到 historyIllness 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -710,24 +751,30 @@ public class SmartSolveAutomationService {
             String bugOriginalText = cellText_record_number + "：" + bug.getText();
             System.out.println(bugOriginalText);
             currentRow.add(bugOriginalText);
+            currentRowEnglish.add(bugOriginalText);
         } catch (NoSuchElementException e) {
             System.out.println("未找到 故障表现 后半部分的 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         //预期治疗疾病或作用 23
         currentRow.add("");
+        currentRowEnglish.add("");
 
         //器械使用日期 24
         if (dateOfEvent != null && !dateOfEvent.getText().isEmpty()) {
             String newFormatEventDate = convertDate(dateOfEvent.getText());
             currentRow.add(newFormatEventDate);
+            currentRowEnglish.add(newFormatEventDate);
         } else {
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         //使用场所 25
         currentRow.add("医疗机构");
+        currentRowEnglish.add("medical organization");
 
         // 场所名称 26
         // 医院名称
@@ -754,8 +801,10 @@ public class SmartSolveAutomationService {
         //合并
         if (facilityName != null && countryName != null) {
             currentRow.add(facilityName.getText() + ", " + countryName.getText());
+            currentRowEnglish.add(facilityName.getText() + ", " + countryName.getText());
         } else {
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         // 使用过程 27
@@ -787,11 +836,17 @@ public class SmartSolveAutomationService {
         System.out.println(finalTranslatedText);
         currentRow.add(finalTranslatedText);
 
+        String finalText = originalText + '\n' + B7OriginalText;
+        System.out.println(finalTranslatedText);
+        currentRowEnglish.add(finalText);
+
         // 合并用药器械情况说明 28
         currentRow.add("");
+        currentRowEnglish.add("");
 
         //是否展开了调查 29
         currentRow.add("是");
+        currentRowEnglish.add("yes");
 
         //调查情况 30
         WebElement h8 = null;
@@ -805,24 +860,35 @@ public class SmartSolveAutomationService {
             System.out.println(h8OriginalText2);
             String translatedH8OriginalText2 = TranslationUtil.translate(h8OriginalText2);
             currentRow.add(translatedH8OriginalText2);
+            currentRowEnglish.add(h8OriginalText2);
         } catch (NoSuchElementException e) {
             System.out.println("未找到 h8 元素");
             currentRow.add("");
+            currentRowEnglish.add("");
         }
 
         // 剩余七列
         currentRow.add(""); //31
+        currentRowEnglish.add("");
         currentRow.add(""); //32
+        currentRowEnglish.add("");
         currentRow.add(""); //33
+        currentRowEnglish.add("");
         currentRow.add(""); //34
+        currentRowEnglish.add("");
         currentRow.add(""); //35
+        currentRowEnglish.add("");
         currentRow.add(""); //36
+        currentRowEnglish.add("");
         currentRow.add(""); //37
+        currentRowEnglish.add("");
 
         System.out.println("完成了一次row的add");
         System.out.print("currentRow list的长度为 " + currentRow.size());
+        System.out.print("currentRowEnglish list的长度为 " + currentRowEnglish.size());
         //将当前row 添加到原始的成员变量里去
         textsNeedtoBeInserted.add(currentRow);
+        textsNeedtoBeInserted_en.add(currentRowEnglish);
 
         System.out.println("记录处理的log");
         String currentURl = webDriver.getCurrentUrl();
@@ -879,6 +945,18 @@ public class SmartSolveAutomationService {
                 cell.setCellValue(cellValue); // 设置单元格的值
             }
         }
+
+        for (int i = 0; i < textsNeedtoBeInserted_en.size(); i++) {
+            List<String> rowList = textsNeedtoBeInserted_en.get(i);
+            Row row = sheet.createRow(i); // 创建一行
+
+            for (int j = 0; j < rowList.size(); j++) {
+                String cellValue = rowList.get(j);
+                Cell cell = row.createCell(j); // 创建一个单元格
+                cell.setCellValue(cellValue); // 设置单元格的值
+            }
+        }
+
         // 将工作簿写入文件
         try (FileOutputStream fileOut = new FileOutputStream("output.xlsx")) {
             workbook.write(fileOut);
@@ -897,6 +975,7 @@ public class SmartSolveAutomationService {
     public void insertNewRowsToTemplate() {
         String templatePath = appConfig.getTemplateFilePath();
 
+        // 获取当前日期
         // 获取当前日期
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -946,6 +1025,64 @@ public class SmartSolveAutomationService {
                 }
             }
             System.out.println("Data written to the copy file successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+    public void insertNewRowsToTemplate_en() {
+        String templatePath = appConfig.getTemplateFilePath();
+
+        // 获取当前日期
+        // 获取当前日期
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String dateStr_en = currentDate.format(dateFormatter);
+
+        // 获取当前时间戳
+        long timestamp_en = System.currentTimeMillis();
+
+        // 构建副本文件路径
+
+        int lastDotIndex = templatePath.lastIndexOf('.');
+        String fileNamePrefix_en = templatePath.substring(0, lastDotIndex);
+        String fileExtension = templatePath.substring(lastDotIndex);
+        String copyPath_en = fileNamePrefix_en + "_" + dateStr_en + "_" + timestamp_en + "_en" + fileExtension;
+
+        try {
+            // 创建副本文件
+            try (InputStream in = new FileInputStream(templatePath);
+                 OutputStream out = new FileOutputStream(copyPath_en)) {
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+            }
+
+            // 打开副本文件并写入数据
+            try (FileInputStream fis = new FileInputStream(copyPath_en);
+                 Workbook workbook = new XSSFWorkbook(fis)) {
+                Sheet sheet = workbook.getSheetAt(0); // 获取第一个工作表
+
+                // 从第三行开始写入数据
+                int startRow = 2;
+                for (int i = 0; i < textsNeedtoBeInserted_en.size(); i++) {
+                    List<String> rowList = textsNeedtoBeInserted_en.get(i);
+                    Row row = sheet.createRow(startRow + i);
+
+                    for (int j = 0; j < rowList.size(); j++) {
+                        String cellValue = rowList.get(j);
+                        Cell cell = row.createCell(j);
+                        cell.setCellValue(cellValue);
+                    }
+                }
+                // 将修改后的工作簿写入文件
+                try (FileOutputStream fileOut = new FileOutputStream(copyPath_en)) {
+                    workbook.write(fileOut);
+                }
+            }
+            System.out.println("Data_en written to the copy file successfully!");
         } catch (IOException e) {
             e.printStackTrace();
         }
