@@ -1,6 +1,10 @@
 package org.example.service;
 
-import org.example.util.FileReaderUtil;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.util.TranslationUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -12,14 +16,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.sound.midi.spi.SoundbankReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.example.util.FileReaderUtil.readCSVFile;
@@ -33,12 +38,14 @@ public class SmartSolveAutomationService {
     private List<String> windowHandlesList = new ArrayList<>();
     private int count = 0;
     private List<List<String>> textsNeedtoBeInserted = new ArrayList<>();
+    private List<List<String>> log = new ArrayList<>();
 
     public void automateAndDownloadFile() {
         Instant start = Instant.now(); // 记录开始时间
         // 测试 读取NMPA来的template文件
-        List<List<String>> data_template = readExcelFile("C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_new.xlsx");
-
+        List<List<String>> data_template = readExcelFile("C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_example.xlsx");
+        System.out.println(data_template.size());
+        System.out.println(data_template.get(0).size());
         // 提取更多需要的元素
 //        List<String> elementsToTranslate = new ArrayList<>();
 //        elementsToTranslate.add("i love china");
@@ -60,7 +67,7 @@ public class SmartSolveAutomationService {
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx");
         // 等待1分钟 来让用户登录！ 测试发现 有时需要登录 有时不需要登录
         try {
-            Thread.sleep(50000);
+            Thread.sleep(90000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -98,7 +105,7 @@ public class SmartSolveAutomationService {
 
         //读取已处理numbers文件的log
         String logFilePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\SiemensLog_Report_Number.csv";
-        List<String> complaintNumbers = FileReaderUtil.readCSVFile(logFilePath);
+        List<String> complaintNumbers = readCSVFile(logFilePath);
 
 
         // 页码相关的信息 和 下一页 的button
@@ -324,7 +331,8 @@ public class SmartSolveAutomationService {
                                             Thread.sleep(10000);
                                             count++;
                                             List<String> currentRow = new ArrayList<>();
-                                            clickViewReportAndExtractField(currentRow, cellText_record_number);
+                                            List<String> currentRowLog = new ArrayList<>();
+                                            clickViewReportAndExtractField(currentRow, cellText_record_number, currentRowLog);
                                             // 进入到这个if 块说明
                                             // 找到当前的fda close 不是followup的唯一报告了 直接退出循环 break 不要删除
                                             break;
@@ -404,25 +412,6 @@ public class SmartSolveAutomationService {
             }
             System.out.println("dashboard中当前分页已经处理完毕 点击next page button进入下一页");
 
-            //刷新窗口
-            // 获取所有窗口句柄
-//            Set<String> windowHandles_r = webDriver.getWindowHandles();
-//            System.out.print("所有窗口的句柄的长度 ");
-//            System.out.println(windowHandles_r.size());
-//            System.out.print("所有窗口的句柄的内容 ");
-//            System.out.println(windowHandles_r);
-//            System.out.print("当前句柄为了分页刷新页面 ");
-//            System.out.println(webDriver.getWindowHandle());
-//            // 获取最新窗口的句柄
-//            String latestWindowHandle_r = null;
-//            for (String handle : windowHandles_r) {
-//                latestWindowHandle_r = handle;
-//            }
-//            // 切换到最新窗口
-//            if (latestWindowHandle_r != null) {
-//                webDriver.switchTo().window(latestWindowHandle_r);
-//                System.out.println("已切换到最新窗口");
-//            }
             // 获取next page button
             WebElement nextPageButton = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[3]/input[1]"));
 
@@ -448,10 +437,13 @@ public class SmartSolveAutomationService {
         System.out.println(count);
         long duration = Duration.between(start, end).toMinutes(); // 计算耗时（单位：分钟）
         System.out.println("当前方法耗时: " + duration + " 分钟");
+        insertNewRowsToTemplate();
+        backUpOutputs();
+
         System.out.println("End!");
     }
 
-    public void clickViewReportAndExtractField(List<String> currentRow, String cellText_record_number){
+    public void clickViewReportAndExtractField(List<String> currentRow, String cellText_record_number, List<String> currentRowLog){
         // todo 在新页面中点击view report 然后在开启的新页面中 提取出template表需要的字段 某些字段无法提取 需要汇报
         // 需要切换一下窗口句柄 因为新增了一个窗口
         // 获取所有窗口句柄
@@ -553,13 +545,13 @@ public class SmartSolveAutomationService {
         System.out.println(ageLabel.getText());
 
         // 第一到五列 暂时填充为空字符串
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
+        currentRow.add(""); //1 产品名称
+        currentRow.add(""); //2 注册证编号
+        currentRow.add(""); //3 产地
+        currentRow.add(""); //4 管理类别
+        currentRow.add(""); //5 产品类别
 
-        //产品批号 D4 serial number or lot number 二者选一
+        //6 产品批号 D4 serial number or lot number 二者选一
         WebElement serialNumber= webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[7]/div/ul/li[2]/div/label[2]"));
         System.out.print("SerialNumber ");
         System.out.println(serialNumber.getText());
@@ -567,52 +559,56 @@ public class SmartSolveAutomationService {
         WebElement lotNumber = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[2]/div/ul/li[2]/div"));
         System.out.print("LotNumber ");
         System.out.println(lotNumber.getText());
-        if (serialNumber.getText().isEmpty()) {
+        if (serialNumber.getText().isEmpty() || serialNumber.getText().equals("N/A")) {
             currentRow.add(lotNumber.getText());
         }else{
             currentRow.add(serialNumber.getText());
         }
 
         //产品编号 UDI 生产日期 注意生产日期就是不填
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
+        currentRow.add(""); //7
+        currentRow.add(""); //8
+        currentRow.add(""); //9
 
-        // 如果是试剂的话 MDR上有有效期这个字段 仪器的话没有有效期这个字段
+        // 如果是试剂的话 MDR上有有效期这个字段 仪器的话没有有效期这个字段 10
         WebElement expirationDate = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[9]/div/div/div/div/div[5]/fieldset/div[5]/div/ul/li[2]/div"));
         System.out.print("ExpirationDate ");
         System.out.println(expirationDate.getText());
         if (!expirationDate.getText().isEmpty()) {
-            currentRow.add(expirationDate.getText());
+            String newFormatDate = convertDate(expirationDate.getText());
+            currentRow.add(newFormatDate);
         }else{
             currentRow.add("");
         }
 
-        // 事件发生日期
+        // 事件发生日期 11
         WebElement dateOfEvent = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[1]/div/ul/li[2]/div/label[2]"));
         System.out.print("dateOfEvent ");
         String stringDateOfEvent = dateOfEvent.getText();
         System.out.println(stringDateOfEvent);
-        currentRow.add(stringDateOfEvent);
+        if (!stringDateOfEvent.isEmpty()) {
+            String newFormatEventDate = convertDate(stringDateOfEvent);
+            currentRow.add(newFormatEventDate);
+        }else{
+            currentRow.add("");
+        }
 
-        // 发现或者悉知日期 这个字段来自于西门子log 暂时不填
+        // 发现或者悉知日期 这个字段来自于西门子log 暂时不填 12
         currentRow.add("");
 
-        // 伤害 类型 一般选为 其他
+        // 伤害 类型 一般选为 其他 13
         currentRow.add("其他");
-        // 伤害表现 不填
+        // 伤害表现 不填 14
         currentRow.add("");
-        // 姓名不填
+        // 姓名不填 15
         currentRow.add("");
 
-        //出生日期 其实一般情况都不填
+        //出生日期 其实一般情况都不填 16
         WebElement dateOfBirth= webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[3]/div/ul/li[2]/div"));
         System.out.print("dateOfBirth ");
         System.out.println(dateOfBirth.getText());
         currentRow.add(dateOfBirth.getText());
 
-        //年龄单位  待选项是 岁月天 todo 还得处理
-        currentRow.add("岁");
         //年龄 数字
         //   /html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[2]
         WebElement ageNumber = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[2]"));
@@ -622,41 +618,78 @@ public class SmartSolveAutomationService {
         System.out.println(ageNumberOriginalText);
         String newAgeNumberString = ageNumberOriginalText.replaceAll("[\n\r]+", "-");
         System.out.println(newAgeNumberString);
-        currentRow.add(newAgeNumberString);
+        String[] parts = newAgeNumberString.split("-");
+        String timeUnit = ""; //年龄单位 17
+        String numberForAge = ""; //年龄数字 18
+        if (parts.length > 1) {
+            timeUnit = parts[1];
+            numberForAge = parts[0];
+        }else{
+            timeUnit = ""; //
+            numberForAge = "";
+        }
+        // 填充
+        if (timeUnit.equals("Years")){
+            currentRow.add("岁");
+        }else if (timeUnit.equals("Months")){
+            currentRow.add("月");
+        }else if (timeUnit.equals("Days")){
+            currentRow.add("日");
+        }else{
+            currentRow.add("");
+        }
+        currentRow.add(numberForAge);
 
         //sex
         WebElement sex = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[5]/fieldset/div[1]/div/ul/li[2]/div"));
         System.out.print("sex ");
         String sexText = sex.getText();
         System.out.println(sexText);
-        currentRow.add(sexText);
+        if (sexText.equals("Female")){
+            currentRow.add("女");
+        }else if (sexText.equals("Male")){
+            currentRow.add("男");
+        }else{
+            currentRow.add("");
+        }
 
-        // 既往病史
+        // 病历号
+        currentRow.add(""); //20
+
+        // 既往病史 21
         WebElement historyIllness = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[7]/fieldset/div[1]/div/ul/li[2]/div/div/div"));
         System.out.print("既往病史 ");
         String historyIllnessOriginalText = historyIllness.getText();
         currentRow.add(historyIllnessOriginalText);
 
-        // 故障表现
+        // 故障表现 22
         WebElement bug = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[17]/div/div/div/div/div[7]/fieldset/div[1]/div/div[1]/div/div[1]/div[3]/div/table/tbody/tr[2]/td[4]/div[1]/label[2]"));
         System.out.println("故障表现 ");
         String bugOriginalText = cellText_record_number + " " + bug.getText();
         System.out.println(bugOriginalText);
         currentRow.add(bugOriginalText);
 
-        //器械使用日期
-        currentRow.add(stringDateOfEvent);
+        //预期治疗疾病或作用 23
+        currentRow.add("");
 
-        //使用场所
+        //器械使用日期 24
+        if (!stringDateOfEvent.isEmpty()) {
+            String newFormatEventDate = convertDate(stringDateOfEvent);
+            currentRow.add(newFormatEventDate);
+        }else{
+            currentRow.add("");
+        }
+
+        //使用场所 25
         currentRow.add("医疗机构");
 
-        //场所名称
-        //医院名称
+        // 场所名称 26
+        // 医院名称
         WebElement facilityName = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[11]/div/div/div/div/div[1]/fieldset/div[9]/div/ul/li[2]/div/label[2]"));
         System.out.print("facilityName ");
         String stringfacilityName = facilityName.getText();
         System.out.println(stringfacilityName);
-        //国家
+        // 国家
         WebElement countryName = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[11]/div/div/div/div/div[1]/fieldset/div[21]/div/ul/li[2]/div/div/div/label[1]"));
         System.out.print("countryName ");
         String stringCountryName = countryName.getText();
@@ -664,36 +697,33 @@ public class SmartSolveAutomationService {
         // 合并
         currentRow.add(stringfacilityName + ", " + stringCountryName);
 
-        // 使用过程
+        // 使用过程 27
         //  /html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[4]/div/ul/li[2]/div/div/div
         WebElement description = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[4]/div/ul/li[2]/div/div/div"));
         System.out.print("使用过程 ");
         String originalText = description.getText();
         System.out.println(originalText);
+        originalText = originalText.replaceAll("[\n\r]+", " ");
 
         WebElement B7 = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[6]/div/ul/li[2]/div/div/div"));
         System.out.print("B7 ");
         String B7OriginalText = B7.getText();
+        B7OriginalText = B7OriginalText.replaceAll("[\n\r]+", " ");
 
-        String originalText2 = originalText + " " +  B7OriginalText;
-        System.out.println("完整字段");
-        System.out.println(originalText2);
-        String newString = originalText2.replaceAll("[\n\r]+", " ");
-        System.out.println("替换换行符以后的字符串");
-        System.out.println(newString);
+        String translatedOriginalText = TranslationUtil.translate(originalText);
+        String translatedB7OriginalText = TranslationUtil.translate(B7OriginalText);
 
-        System.out.print("尝试翻译 ");
-        String translatedText = TranslationUtil.translate(newString);
-        System.out.println(translatedText);
-        currentRow.add(translatedText);
+        String finalTranslatedText = translatedOriginalText + '\n' + translatedB7OriginalText;
+        System.out.println(finalTranslatedText);
+        currentRow.add(finalTranslatedText);
 
-        // 合并用药器械情况说明
+        // 合并用药器械情况说明 28
         currentRow.add("");
 
-        //是否展开了调查
+        //是否展开了调查 29
         currentRow.add("是");
 
-        //调查情况
+        //调查情况 30
         WebElement h8 = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[17]/div/div/div/div/div[11]/fieldset/div[9]/div/ul/li[2]/div/div/div"));
         System.out.print("h8 ");
         String h8OriginalText = h8.getText();
@@ -701,20 +731,28 @@ public class SmartSolveAutomationService {
         String h8OriginalText2 = h8OriginalText.replaceAll("[\n\r]+", " ");
         System.out.println("h8替换换行符");
         System.out.println(h8OriginalText2);
-        currentRow.add(h8OriginalText2);
+        String translatedH8OriginalText2 = TranslationUtil.translate(h8OriginalText2);
+        currentRow.add(translatedH8OriginalText2);
 
-        //剩余七行
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-        currentRow.add("");
-
+        // 剩余七列
+        currentRow.add(""); //31
+        currentRow.add(""); //32
+        currentRow.add(""); //33
+        currentRow.add(""); //34
+        currentRow.add(""); //35
+        currentRow.add(""); //36
+        currentRow.add(""); //37
 
         System.out.println("完成了一次row的add");
         System.out.print("currentRow list的长度为 " + currentRow.size());
+        //将当前row 添加到原始的成员变量里去
+        textsNeedtoBeInserted.add(currentRow);
+
+        System.out.println("记录处理的log");
+        String currentURl = webDriver.getCurrentUrl();
+        currentRowLog.add(cellText_record_number);
+        currentRowLog.add(currentURl);
+        log.add(currentRowLog);
 
         //处理完当前MDR页面上的所有元素 关闭当前MD窗口
         webDriver.close();
@@ -746,5 +784,150 @@ public class SmartSolveAutomationService {
         System.out.print("现在list的长度应该是1 ");
         System.out.println(windowHandlesList.size());
         System.out.println(webDriver.getWindowHandle());
+    }
+
+    public void backUpOutputs(){
+        // 创建一个新的工作簿 作为备份文件
+        Workbook workbook = new XSSFWorkbook();
+        // 创建一个工作表
+        Sheet sheet = workbook.createSheet("Sheet1");
+
+        // 遍历二维列表，将每一行数据写入工作表
+        for (int i = 0; i < textsNeedtoBeInserted.size(); i++) {
+            List<String> rowList = textsNeedtoBeInserted.get(i);
+            Row row = sheet.createRow(i); // 创建一行
+
+            for (int j = 0; j < rowList.size(); j++) {
+                String cellValue = rowList.get(j);
+                Cell cell = row.createCell(j); // 创建一个单元格
+                cell.setCellValue(cellValue); // 设置单元格的值
+            }
+        }
+        // 将工作簿写入文件
+        try (FileOutputStream fileOut = new FileOutputStream("output.xlsx")) {
+            workbook.write(fileOut);
+            System.out.println("Excel file backup created successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 关闭工作簿
+        try {
+            workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void insertNewRowsToTemplate() {
+        String templatePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_example.xlsx";
+
+        // 获取当前日期
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String dateStr = currentDate.format(dateFormatter);
+
+        // 获取当前时间戳
+        long timestamp = System.currentTimeMillis();
+
+        // 构建副本文件路径
+        int lastDotIndex = templatePath.lastIndexOf('.');
+        String fileNamePrefix = templatePath.substring(0, lastDotIndex);
+        String fileExtension = templatePath.substring(lastDotIndex);
+        String copyPath = fileNamePrefix + "_" + dateStr + "_" + timestamp + fileExtension;
+
+        try {
+            // 创建副本文件
+            try (InputStream in = new FileInputStream(templatePath);
+                 OutputStream out = new FileOutputStream(copyPath)) {
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+            }
+
+            // 打开副本文件并写入数据
+            try (FileInputStream fis = new FileInputStream(copyPath);
+                 Workbook workbook = new XSSFWorkbook(fis)) {
+                Sheet sheet = workbook.getSheetAt(0); // 获取第一个工作表
+
+                // 从第三行开始写入数据
+                int startRow = 2;
+                for (int i = 0; i < textsNeedtoBeInserted.size(); i++) {
+                    List<String> rowList = textsNeedtoBeInserted.get(i);
+                    Row row = sheet.createRow(startRow + i);
+
+                    for (int j = 0; j < rowList.size(); j++) {
+                        String cellValue = rowList.get(j);
+                        Cell cell = row.createCell(j);
+                        cell.setCellValue(cellValue);
+                    }
+                }
+                // 将修改后的工作簿写入文件
+                try (FileOutputStream fileOut = new FileOutputStream(copyPath)) {
+                    workbook.write(fileOut);
+                }
+            }
+
+            System.out.println("Data written to the copy file successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 打开已有的 Excel 文件
+//        try (FileInputStream fis = new FileInputStream(templatePath)) {
+//            Workbook workbook_1 = new XSSFWorkbook(fis);
+//            Sheet sheet_1 = workbook_1.getSheetAt(0); // 获取第一个工作表
+//
+//            // 从第三行开始写入数据
+//            int startRow = 2; // 第三行的索引是 1
+//            for (int i = 0; i < textsNeedtoBeInserted.size(); i++) {
+//                List<String> rowList = textsNeedtoBeInserted.get(i);
+//                Row row = sheet_1.createRow(startRow + i); // 创建一行
+//
+//                for (int j = 0; j < rowList.size(); j++) {
+//                    String cellValue = rowList.get(j);
+//                    Cell cell = row.createCell(j); // 创建一个单元格
+//                    cell.setCellValue(cellValue); // 设置单元格的值
+//                }
+//            }
+//
+//            // 将修改后的工作簿写入文件
+//            try (FileOutputStream fileOut = new FileOutputStream(templatePath)) {
+//                workbook_1.write(fileOut);
+//                System.out.println("Excel file updated successfully!");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//            // 关闭工作簿
+//            try {
+//                workbook_1.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public static String convertDate(String inputDate) {
+        if (inputDate == null) {
+            return null;
+        }
+        // 定义输入日期的格式
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.ENGLISH);
+        // 定义输出日期的格式
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            // 解析输入的日期字符串为 LocalDate 对象
+            LocalDate date = LocalDate.parse(inputDate, inputFormatter);
+            // 将 LocalDate 对象按照输出格式转换为字符串
+            return date.format(outputFormatter);
+        } catch (Exception e) {
+            // 若解析失败，打印异常信息并返回 null
+            e.printStackTrace();
+            return inputDate;
+        }
     }
 }
