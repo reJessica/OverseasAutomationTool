@@ -439,6 +439,7 @@ public class SmartSolveAutomationService {
         System.out.println("当前方法耗时: " + duration + " 分钟");
         insertNewRowsToTemplate();
         backUpOutputs();
+        writeCurrentDayRecordNumberIntoLog(logFilePath);
 
         System.out.println("End!");
     }
@@ -928,6 +929,23 @@ public class SmartSolveAutomationService {
             // 若解析失败，打印异常信息并返回 null
             e.printStackTrace();
             return inputDate;
+        }
+    }
+
+    public void writeCurrentDayRecordNumberIntoLog(String csvFilePath){
+        try (FileWriter writer = new FileWriter(csvFilePath, true)) {
+            // 遍历 log 列表
+            for (List<String> innerList : log) {
+                if (!innerList.isEmpty()) {
+                    // 获取内层列表的第一个字符串
+                    String recordNumber = innerList.get(0);
+                    // 追加到 CSV 文件中，并换行
+                    writer.append(recordNumber).append("\n");
+                }
+            }
+            System.out.println("Data appended to CSV file successfully.");
+        } catch (IOException e) {
+            System.err.println("Error appending data to CSV file: " + e.getMessage());
         }
     }
 }
