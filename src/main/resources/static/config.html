@@ -1,32 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>配置页面</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 <header class="headbar">
     <h1>Automation Service</h1>
     <nav class="header-nav">
-        <a href="#" class="header-btn" id="save-config-btn">Save</a>
         <a href="index.html" class="header-btn">Home</a>
     </nav>
 </header>
 <main class="main-panel">
-    <form id="config-form">
-        <label for="template-path">模板文件路径:</label>
-        <input type="text" id="template-path" name="template-path"><br>
-        <label for="log-path">日志文件路径:</label>
-        <input type="text" id="log-path" name="log-path"><br>
-        <label for="output-path">输出文件路径:</label>
-        <input type="text" id="output-path" name="output-path"><br>
-    </form>
+    <label for="import-config-button">点击按钮选择配置文件（结尾是json格式的文件）</label>
+    <input type="file" id="config-file-input" accept=".json" style="display: none;">
+    <button id="import-config-button">导入配置</button>
+    <div id="config-table-container"></div>
 </main>
-<script src="configScript.js"></script>
+<script src="configScript.js?v=1.1"></script>
 </body>
-
 </html>

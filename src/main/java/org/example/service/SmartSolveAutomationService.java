@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.example.config.AppConfig;
 import org.example.util.TranslationUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -34,6 +35,8 @@ import static org.example.util.FileReaderUtil.readExcelFile;
 public class SmartSolveAutomationService {
     @Autowired
     private WebDriver webDriver;
+    @Autowired
+    private AppConfig appConfig;
     // 在 SmartSolveAutomationService 类中添加一个成员变量来存储窗口句柄
     private List<String> windowHandlesList = new ArrayList<>();
     private int count = 0;
@@ -43,25 +46,14 @@ public class SmartSolveAutomationService {
     public void automateAndDownloadFile() {
         Instant start = Instant.now(); // 记录开始时间
         // 测试 读取NMPA来的template文件
-        List<List<String>> data_template = readExcelFile("C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_example.xlsx");
+        List<List<String>> data_template = readExcelFile(appConfig.getTemplateFilePath());
         System.out.println(data_template.size());
         System.out.println(data_template.get(0).size());
-        // 提取更多需要的元素
-//        List<String> elementsToTranslate = new ArrayList<>();
-//        elementsToTranslate.add("i love china");
-//        // 添加更多元素...
-//
-//        List<String> translatedTexts = new ArrayList<>();
-//        for (String s : elementsToTranslate) {
-//            String text = s;
-//            String translatedText = TranslationUtil.translate(text);
-//            translatedTexts.add(translatedText);
-//        }
-//
-//        for (String s : translatedTexts) {
-//            System.out.println(s);
-//        }
-//        System.out.println("翻译完毕");
+
+        System.out.println("测试 路径配置");
+        System.out.println(appConfig.getTemplateFilePath());
+        System.out.println(appConfig.getLogFilePath());
+        System.out.println("测试 路径配置结束");
 
         // 导航到网站
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx");
@@ -104,8 +96,8 @@ public class SmartSolveAutomationService {
         windowHandlesList.add(webDriver.getWindowHandle());
 
         //读取已处理numbers文件的log
-        String logFilePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\SiemensLog_Report_Number.csv";
-        List<String> complaintNumbers = readCSVFile(logFilePath);
+        //String logFilePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\SiemensLog_Report_Number.csv";
+        List<String> complaintNumbers = readCSVFile(appConfig.getLogFilePath());
 
 
         // 页码相关的信息 和 下一页 的button
@@ -439,7 +431,7 @@ public class SmartSolveAutomationService {
         System.out.println("当前方法耗时: " + duration + " 分钟");
         insertNewRowsToTemplate();
         backUpOutputs();
-        writeCurrentDayRecordNumberIntoLog(logFilePath);
+        writeCurrentDayRecordNumberIntoLog(appConfig.getLogFilePath());
 
         System.out.println("End!");
     }
@@ -820,7 +812,7 @@ public class SmartSolveAutomationService {
     }
 
     public void insertNewRowsToTemplate() {
-        String templatePath = "C:\\Users\\z0052cmr\\IdeaProjects\\OverseasAutomationTool\\src\\main\\resources\\template_example.xlsx";
+        String templatePath = appConfig.getTemplateFilePath();
 
         // 获取当前日期
         LocalDate currentDate = LocalDate.now();
@@ -831,6 +823,7 @@ public class SmartSolveAutomationService {
         long timestamp = System.currentTimeMillis();
 
         // 构建副本文件路径
+
         int lastDotIndex = templatePath.lastIndexOf('.');
         String fileNamePrefix = templatePath.substring(0, lastDotIndex);
         String fileExtension = templatePath.substring(lastDotIndex);
@@ -874,41 +867,7 @@ public class SmartSolveAutomationService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // 打开已有的 Excel 文件
-//        try (FileInputStream fis = new FileInputStream(templatePath)) {
-//            Workbook workbook_1 = new XSSFWorkbook(fis);
-//            Sheet sheet_1 = workbook_1.getSheetAt(0); // 获取第一个工作表
-//
-//            // 从第三行开始写入数据
-//            int startRow = 2; // 第三行的索引是 1
-//            for (int i = 0; i < textsNeedtoBeInserted.size(); i++) {
-//                List<String> rowList = textsNeedtoBeInserted.get(i);
-//                Row row = sheet_1.createRow(startRow + i); // 创建一行
-//
-//                for (int j = 0; j < rowList.size(); j++) {
-//                    String cellValue = rowList.get(j);
-//                    Cell cell = row.createCell(j); // 创建一个单元格
-//                    cell.setCellValue(cellValue); // 设置单元格的值
-//                }
-//            }
-//
-//            // 将修改后的工作簿写入文件
-//            try (FileOutputStream fileOut = new FileOutputStream(templatePath)) {
-//                workbook_1.write(fileOut);
-//                System.out.println("Excel file updated successfully!");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            // 关闭工作簿
-//            try {
-//                workbook_1.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+
     }
 
     public static String convertDate(String inputDate) {
@@ -947,5 +906,9 @@ public class SmartSolveAutomationService {
         } catch (IOException e) {
             System.err.println("Error appending data to CSV file: " + e.getMessage());
         }
+    }
+
+    public List<List<String>> getLog() {
+        return log;
     }
 }

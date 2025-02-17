@@ -14,7 +14,13 @@ public class WebDriverConfig {
     @Bean
     public WebDriver webDriver() {
         // 指定 ChromeDriver 的路径 可以自定义 这个驱动是从网上找的下载的
-        String driverPath = "C:\\Users\\z0052cmr\\Downloads\\chromedriver-win64-unzipped\\chromedriver-win64\\chromedriver.exe";
+        // String driverPath = "C:\\Users\\z0052cmr\\Downloads\\chromedriver-win64-unzipped\\chromedriver-win64\\chromedriver.exe";
+
+        String driverPath = System.getenv("CHROME_DRIVER_PATH");
+        if (driverPath == null) {
+            throw new IllegalStateException("The environment variable 'CHROME_DRIVER_PATH' is not set.");
+        }
+
         File driverFile = new File(driverPath);
         if (driverFile.exists()) {
             System.setProperty("webdriver.chrome.driver", driverPath);

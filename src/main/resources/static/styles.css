@@ -97,3 +97,48 @@ button:hover {
     border-radius: 5px;
     transition: width 0.5s ease;
 }
+
+/* log-container 整体样式 */
+#log-container {
+    width: 100%;
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 300px; /* 设置最大高度，超出部分可滚动 */
+}
+
+/* log-container 内每行的样式 */
+#log-container div {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 最后一行去掉底部边框 */
+#log-container div:last-child {
+    border-bottom: none;
+}
+
+/* log-container 内每个单元格（span 元素）的样式 */
+#log-container span {
+    margin-right: 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+/* log-container 内超链接的样式 */
+#log-container a {
+    color: #007BFF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#log-container a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
