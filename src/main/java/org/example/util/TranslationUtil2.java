@@ -13,10 +13,10 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class TranslationUtil {
-    // 账号信息为 LuMengJia
-    private static final String APP_ID = "20250217002275685";
-    private static final String SECRET_KEY = "YZ48fjotBc6VulHu51Kk";
+public class TranslationUtil2 {
+    // 账号信息为 xiaoyuan
+    private static final String APP_ID = "20250217002275877";
+    private static final String SECRET_KEY = "gPhsrdBAlGzqK4G4TT3b";
     private static final String API_URL = "http://api.fanyi.baidu.com/api/trans/vip/translate";
 
     public static String translate(String text) {
@@ -37,6 +37,7 @@ public class TranslationUtil {
             String result = EntityUtils.toString(entity, "UTF-8");
 
             JSONObject jsonObject = new JSONObject(result);
+            System.out.println(jsonObject);
             JSONArray transResult = jsonObject.getJSONArray("trans_result");
             return transResult.getJSONObject(0).getString("dst");
         } catch (Exception e) {

@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,14 +30,7 @@ public class AutomationController {
     @GetMapping("/start")
     public List<List<String>> startSmartSolveAutomationService() {
         smartSolveAutomationService.automateAndDownloadFile();
-        // todo 新建数据库 新建一张是log表 这里使用mybatis来实现 读取历史和写入新log记录
         List<List<String>> logList = smartSolveAutomationService.getLog();
-        for (List<String> log : logList) {
-            for (String line : log) {
-                System.out.print(line + "\t");
-            }
-            System.out.println();
-        }
         return logList;
     }
 }

@@ -1,44 +1,35 @@
-package org.example.service;
+# 交接文档
+这个软件是自动化流程的工具 从西门子内部网站上抓取页面元素 填入到excel表格中去
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.example.config.AppConfig;
-import org.example.util.TranslationUtil;
-import org.example.util.TranslationUtil2;
-import org.example.util.TranslationUtil3;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+## 开发环境
+- Java使用了11版本
+  - openjdk version "11.0.26" 2025-01-21 LTS
+  - OpenJDK Runtime Environment Corretto-11.0.26.4.1 (build 11.0.26+4-LTS)
+  - OpenJDK 64-Bit Server VM Corretto-11.0.26.4.1 (build 11.0.26+4-LTS, mixed mode)
+- Selenium，一个常见的自动化框架。 需要的驱动文件已安装在LuMengJia的AutoSoftware路径下 驱动版本需要和谷歌浏览器版本兼容 我的代码里访问Selenium 谷歌浏览器驱动使用了系统环境变量
+- ![img.png](img.png)
+- Maven 3.9.8
+- 未使用Git和数据库 组内无服务器和代码托管工具
 
-import java.io.*;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
-import static org.example.util.FileReaderUtil.readCSVFile;
-import static org.example.util.FileReaderUtil.readExcelFile;
-
+## 开发思路
+- 注意 代码里大量的用了如下刷新切换句柄的操作是为了刷新页面 因为页面上点击以后页面元素会变化 刷新一下句柄后续就能获取到对应的元素了
+- ![img_1.png](img_1.png)
+- 爬虫的常见操作就是 点击元素 等待一段时间 切换iframe以定位到相应的元素
+- 获取元素通过xpath xpath可以通过网页 右键inspect 选取元素 右键 copy full xpath来取得
+带有注释的代码解释如下
+```java
 @Service
 public class SmartSolveAutomationService {
     @Autowired
-    private WebDriver webDriver;
+    private WebDriver webDriver; // 配置类 谷歌浏览器驱动
     @Autowired
-    private AppConfig appConfig;
+    private AppConfig appConfig; // 网页上配置路径的类 读取文件里的路径传入该服务中
     // 在 SmartSolveAutomationService 类中添加一个成员变量来存储窗口句柄
-    private List<String> windowHandlesList = new ArrayList<>();
-    private int count = 0;
-    private List<List<String>> textsNeedtoBeInserted = new ArrayList<>();
-    private List<List<String>> log = new ArrayList<>();
+    private List<String> windowHandlesList = new ArrayList<>(); // 记录浏览器中每个页面的句柄 每个页面都有一个句柄 维护一个list切换或者移除页面
+    private int count = 0; //计数处理好的报告数量
+    private List<List<String>> textsNeedtoBeInserted = new ArrayList<>(); // 存放要插入模版中的新纪录 是一个N*37的大小
+    private List<List<String>> log = new ArrayList<>(); // 用于在页面上显示今日处理了的报告 报告号+网页link
 
     public void automateAndDownloadFile() {
         Instant start = Instant.now(); // 记录开始时间
@@ -54,7 +45,7 @@ public class SmartSolveAutomationService {
 
         // 导航到网站
         webDriver.get("https://siemens.pilgrimasp.com/prod/smartsolve/Pages/Dashboard.aspx#/load?tabId=Home&searchPage=%7B-au-%7DPages/SmartPortal.aspx");
-        // 等待1分钟 来让用户登录！ 测试发现 有时需要登录 有时不需要登录
+        // 等待1.5分钟 来让用户登录！ 测试发现 有时需要登录 有时不需要登录
         try {
             Thread.sleep(90000);
         } catch (InterruptedException e) {
@@ -97,18 +88,16 @@ public class SmartSolveAutomationService {
         List<String> complaintNumbers = readCSVFile(appConfig.getLogFilePath());
 
 
-        // 页码相关的信息 和 下一页 的button
+        // 获取页码相关的信息 总共有多少条目和总页数
         WebElement totalPages = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[2]/span"));
         WebElement totalItems = webDriver.findElement(By.xpath("/html/body/form/div[4]/div[6]/table/tbody/tr/td/div/table[2]/tbody/tr[1]/td/div[2]/table/tfoot/tr/td/table/tbody/tr/td/div[5]/strong[5]/span"));
-        // todo 这个button会随着 页面的切换而失效 记得修改
 
         int totalPagesCount = Integer.parseInt(totalPages.getText());
         int totalItemsCount = Integer.parseInt(totalItems.getText());
 
         System.out.println("Total Pages: " + totalPagesCount);
         System.out.println("Total Items: " + totalItemsCount);
-
-        // todo 为了确保每次循环都能处理当前页面的最新数据，需要在每次点击 “下一页” 按钮后，重新定位 tbody 元素，并重新获取 rows 列表。
+        // 需要点击i次来实现换页
         for (int i = 1; i <= totalPagesCount; i++) {
             System.out.println("当前页码");
             System.out.println(i);
@@ -121,13 +110,12 @@ public class SmartSolveAutomationService {
             for (WebElement row : rows) {
                 // 找到每行的第二个 td 元素（假设投诉编号在第二个 td 中）
                 System.out.println("查看每一个行row的信息的所有单元格cells的信息 ");
-                // TODO 这里获取tag有问题 我clickViewReportAndExtractField函数已经将多余页面关闭
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                List<WebElement> cells = row.findElements(By.tagName("td")); // 这里有问题 没有取到
+                List<WebElement> cells = row.findElements(By.tagName("td"));
 
                 for (WebElement cell : cells) {
                     System.out.print(cell.getText()+ "\t");
@@ -185,7 +173,7 @@ public class SmartSolveAutomationService {
                                 webDriver.switchTo().window(latestWindowHandle);
                                 System.out.println("已切换到最新窗口");
                             }
-                            // todo 处理报告里的内容 获取关键字段
+                            // 处理报告里的内容 获取关键字段
                             //切换到对应的iframe
                             WebDriverWait wait_content = new WebDriverWait(webDriver, Duration.ofSeconds(15));
                             WebElement iframe_content = wait_content.until(ExpectedConditions.presenceOfElementLocated(By.id("record-pane-content-iframe")));
@@ -228,7 +216,7 @@ public class SmartSolveAutomationService {
                             webDriver.switchTo().frame(iframe_toggle);
                             System.out.println("Switch to complaint toggle frame!");
 
-                            //点击 regulartory  reports toggle paneal todo 看看能不能不点toggle 直接点击对应的FDA对应的report
+                            //点击 regulartory  reports toggle paneal
                             WebElement reportButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[28]/div/h3/span"));
                             JavascriptExecutor js_report = (JavascriptExecutor) webDriver;
                             js_report.executeScript("arguments[0].click();", reportButton);
@@ -259,7 +247,7 @@ public class SmartSolveAutomationService {
                             System.out.println("Switch to complaint regularoty report frame!");
 
                             String pageSource = webDriver.getPageSource();
-                            // 保存 HTML 内容到文件
+                            // 保存 HTML 内容到文件 debug用的
 //                            try (FileWriter writer = new FileWriter("complaint_content_regulatory_report.html")) {
 //                                writer.write(pageSource);
 //                                System.out.println("HTML 内容已保存到 complaint_content_regulatory_report.html 文件中。");
@@ -293,7 +281,6 @@ public class SmartSolveAutomationService {
                                         WebElement link_fda = secondTd.findElement(By.cssSelector("div.control-container a.pHyperLink"));
                                         regulatoryBody = link_fda.getText();
                                         System.out.println(regulatoryBody + " " + status + " follow up number: " + followUpNumber);
-                                        // todo 添加一个状态 判断 不是followup的报告
                                         if (regulatoryBody.contains("FDA") && status.equals("CLOSED") && followUpNumber.isEmpty()) {
                                             //link_fda.click();
                                             JavascriptExecutor js_fda_click = (JavascriptExecutor) webDriver;
@@ -511,9 +498,7 @@ public class SmartSolveAutomationService {
             windowHandlesList.add(webDriver.getWindowHandle());
         }
         System.out.println("开始提取字段");
-        //todo 为下面的所有webDriver.findElement都添加try catch代码块 、
-//        WebElement ageLabel = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[1]/div/label"));
-//        System.out.println(ageLabel.getText());
+        
 
         // 第一到五列 暂时填充为空字符串
         currentRow.add(""); //1 产品名称
@@ -994,3 +979,7 @@ public class SmartSolveAutomationService {
         return log;
     }
 }
+```
+
+
+

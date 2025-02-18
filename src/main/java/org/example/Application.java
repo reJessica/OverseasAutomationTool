@@ -11,9 +11,9 @@ public class Application {
         if (driverPath == null) {
             throw new IllegalStateException("The environment variable 'CHROME_DRIVER_PATH' is not set.");
         }
-        System.out.println(
-                driverPath
-        );
+//        System.out.println(
+//                driverPath
+//        );
         SpringApplication.run(Application.class, args);
     }
 }
