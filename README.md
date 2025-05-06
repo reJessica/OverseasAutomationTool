@@ -1,5 +1,5 @@
 # 交接文档
-这个软件是自动化流程的工具 从西门子内部网站上抓取页面元素 填入到excel表格中去
+这个软件是自动化流程的工具 从西门子内部网站上抓取页面元素 填入到excel表格中去 **项目代码里的代码注释以及todo注释有误 请忽略** 详细注释请参考如下注释
 
 ## 开发环境
 - Java使用了11版本
@@ -17,7 +17,7 @@
 - ![img_1.png](img_1.png)
 - 爬虫的常见操作就是 点击元素 等待一段时间 切换iframe以定位到相应的元素
 - 获取元素通过xpath xpath可以通过网页 右键inspect 选取元素 右键 copy full xpath来取得
-带有注释的代码解释如下
+- 带有注释的代码解释如下 automateAndDownloadFile函数控制页面跳转流程 clickViewReportAndExtractField函数爬取目标页面的元素
 ```java
 @Service
 public class SmartSolveAutomationService {
@@ -983,3 +983,5 @@ public class SmartSolveAutomationService {
 
 
 
+#   O v e r s e a s A u t o m a t i o n T o o l  
+ 
