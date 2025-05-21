@@ -1,0 +1,144 @@
+/* 全局样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* 头部栏样式 */
+.headbar {
+    background-color: #007BFF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    color: white;
+}
+
+.headbar h1 {
+    margin: 0;
+}
+
+/* 头部导航样式 */
+.header-nav {
+    display: flex;
+    align-items: center;
+}
+
+/* 修正类名，去掉空格 */
+.header-btn {
+    color: white;
+    text-decoration: none;
+    margin-left: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    /* 修正transition属性值的格式 */
+    transition: background-color 0.3s ease;
+}
+
+.header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 主面板样式 */
+.main-panel {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    width: 80%;
+    max-width: 600px;
+}
+
+/* 标签样式 */
+label {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* 按钮样式 */
+button {
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 进度条容器样式 */
+.progress-container {
+    width: 100%;
+    background-color: #f3f3f3;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* 进度条样式 */
+.progress-bar {
+    width: 0%;
+    height: 30px;
+    background-color: #4CAF50;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+/* log-container 整体样式 */
+#log-container {
+    width: 100%;
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 300px; /* 设置最大高度，超出部分可滚动 */
+}
+
+/* log-container 内每行的样式 */
+#log-container div {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 最后一行去掉底部边框 */
+#log-container div:last-child {
+    border-bottom: none;
+}
+
+/* log-container 内每个单元格（span 元素）的样式 */
+#log-container span {
+    margin-right: 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+/* log-container 内超链接的样式 */
+#log-container a {
+    color: #007BFF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#log-container a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
