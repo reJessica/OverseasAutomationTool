@@ -34,15 +34,19 @@ public class SmartSolveAutomationService {
     private WebDriver webDriver;
     @Autowired
     private AppConfig appConfig;
+
     // 在 SmartSolveAutomationService 类中添加一个成员变量来存储窗口句柄
     private List<String> windowHandlesList = new ArrayList<>();
     private int count = 0;
+    int id = 1;
+
     private List<List<String>> textsNeedtoBeInserted = new ArrayList<>();
     private List<List<String>> textsNeedtoBeInserted_en = new ArrayList<>();
     private List<List<String>> log = new ArrayList<>();
 
     public void automateAndDownloadFile() {
         Instant start = Instant.now(); // 记录开始时间
+
         // 测试 读取NMPA来的template文件
         List<List<String>> data_template = readExcelFile(appConfig.getTemplateFilePath());
         System.out.println(data_template.size());
@@ -308,6 +312,7 @@ public class SmartSolveAutomationService {
                                             List<String> currentRowEnglish = new ArrayList<>();
                                             List<String> currentRowLog = new ArrayList<>();
                                             clickViewReportAndExtractField(currentRow, currentRowEnglish, cellText_record_number, currentRowLog);
+                                            id++;
                                             // 找到当前的fda close 不是followup的唯一报告了 直接退出循环 break 不要删除
                                             break;
                                         }
@@ -517,7 +522,9 @@ public class SmartSolveAutomationService {
         //todo 为下面的所有webDriver.findElement都添加try catch代码块 、
 //        WebElement ageLabel = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[1]/div/label"));
 //        System.out.println(ageLabel.getText());
-
+        // 在记录开头插入 ID
+        currentRow.add(0, String.valueOf(id));
+        currentRowEnglish.add(0, String.valueOf(id));
         // 第一到五列 暂时填充为空字符串
         currentRow.add(""); //1 产品名称
         currentRowEnglish.add("");
