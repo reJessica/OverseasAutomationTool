@@ -981,8 +981,10 @@ public class SmartSolveAutomationService {
 
         System.out.println("记录处理的log");
         String currentURl = webDriver.getCurrentUrl();
+        // 将URL添加到报告链接中
+        addReportLink(cellText_record_number, currentURl);
+        // 只记录报告编号到日志中
         currentRowLog.add(cellText_record_number);
-        currentRowLog.add(currentURl);
         log.add(currentRowLog);
 
         //处理完当前MDR页面上的所有元素 关闭当前MD窗口
@@ -1204,15 +1206,15 @@ public class SmartSolveAutomationService {
             // 遍历 log 列表
             for (List<String> innerList : log) {
                 if (!innerList.isEmpty()) {
-                    // 获取内层列表的第一个字符串
+                    // 获取内层列表的第一个字符串（报告编号）
                     String recordNumber = innerList.get(0);
                     // 追加到 CSV 文件中，并换行
                     writer.append(recordNumber).append("\n");
                 }
             }
-            System.out.println("Data appended to CSV file successfully.");
+            System.out.println("报告编号已成功写入日志文件");
         } catch (IOException e) {
-            System.err.println("Error appending data to CSV file: " + e.getMessage());
+            System.err.println("写入日志文件时发生错误: " + e.getMessage());
         }
     }
 
