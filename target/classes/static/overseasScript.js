@@ -1,6 +1,7 @@
 // 全局变量
 let currentConfig = null;
 let isEditing = false;
+let statusUpdateInterval = null;
 
 // 初始化事件监听
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 服务控制相关按钮
     const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const refreshButton = document.getElementById('refresh-button');
     const logContainer = document.getElementById('log-container');
 
     // 配置管理事件监听
@@ -59,8 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // 禁用按钮，防止重复点击
+                // 禁用启动按钮，启用停止按钮
                 startButton.disabled = true;
+                stopButton.disabled = false;
                 addLog('服务运行中，请等待...');
 
                 // 清空之前的日志数据
@@ -111,39 +115,38 @@ document.addEventListener('DOMContentLoaded', function() {
                         return;
                     }
 
-                    // 显示日志数据
-                    responseData.forEach((row, rowIndex) => {
-                        if (!Array.isArray(row)) {
-                            const logEntry = document.createElement('div');
-                            logEntry.textContent = JSON.stringify(row);
-                            logContainer.appendChild(logEntry);
-                            return;
-                        }
-
-                        const rowElement = document.createElement('div');
-                        rowElement.className = 'log-row';
+                    // 启动状态更新定时器
+                    startStatusUpdateInterval();
+                    
+                    // 处理响应数据
+                    if (responseData && Array.isArray(responseData)) {
+                        const linksContainer = document.getElementById('report-links-container');
+                        // 保留现有链接，不清除
                         
-                        row.forEach((cell, index) => {
-                            const cellElement = document.createElement('span');
-                            cellElement.className = 'log-cell';
+                        responseData.forEach(log => {
+                            // 添加到报告链接区域
+                            const linkDiv = document.createElement('div');
+                            linkDiv.className = 'report-link-item mb-2';
+                            linkDiv.innerHTML = `
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">报告编号: ${log[0]}</span>
+                                    <a href="${log[1]}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> 查看报告
+                                    </a>
+                                </div>
+                            `;
+                            linksContainer.appendChild(linkDiv);
                             
-                            if (index === 1 && cell && cell.startsWith('http')) {
-                                const linkElement = document.createElement('a');
-                                linkElement.href = cell;
-                                linkElement.textContent = 'link';
-                                linkElement.target = '_blank';
-                                cellElement.appendChild(linkElement);
-                            } else {
-                                cellElement.textContent = cell;
-                            }
-                            
-                            rowElement.appendChild(cellElement);
+                            // 添加基本日志信息
+                            addLog(`开始处理报告: ${log[0]}`);
                         });
                         
-                        logContainer.appendChild(rowElement);
-                    });
+                        // 更新处理数据量
+                        const currentCount = parseInt(document.getElementById('data-count').textContent || '0');
+                        document.getElementById('data-count').textContent = (currentCount + responseData.length).toString();
+                    }
                     
-                    showToast('成功', '服务执行完成', 'success');
+                    showToast('成功', '服务启动成功', 'success');
                 } else {
                     const errorText = await startResponse.text();
                     const errorMessage = `服务启动失败 (HTTP ${startResponse.status}): ${errorText}`;
@@ -163,9 +166,149 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 停止服务按钮事件监听
+    if (stopButton) {
+        stopButton.addEventListener('click', async () => {
+            try {
+                stopButton.disabled = true;
+                addLog('正在停止服务...');
+
+                const response = await fetch('/automation/stop');
+                if (response.ok) {
+                    addLog('服务已停止');
+                    showToast('成功', '服务已停止', 'success');
+                    // 停止状态更新
+                    stopStatusUpdateInterval();
+                    // 重置按钮状态
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                    // 更新状态显示
+                    document.getElementById('service-status').textContent = '未运行';
+                    document.getElementById('data-count').textContent = '0';
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`停止服务失败: ${errorText}`);
+                }
+            } catch (error) {
+                const errorMessage = `停止服务出错: ${error.message}`;
+                console.error(errorMessage);
+                addLog(errorMessage);
+                showToast('错误', errorMessage, 'danger');
+                stopButton.disabled = false;
+            }
+        });
+    }
+
+    // 刷新状态按钮事件监听
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+            updateServiceStatus();
+        });
+    }
+
     // 尝试加载已保存的配置
     loadSavedConfig();
 });
+
+// 更新服务状态的函数
+async function updateServiceStatus() {
+    try {
+        const response = await fetch('/automation/status');
+        if (response.ok) {
+            const status = await response.json();
+            
+            // 更新状态显示
+            document.getElementById('service-status').textContent = status.isRunning ? '运行中' : '未运行';
+            document.getElementById('data-count').textContent = status.processedCount || '0';
+            
+            if (status.lastUpdateTime) {
+                const lastUpdate = new Date(status.lastUpdateTime).toLocaleString();
+                document.getElementById('last-update').textContent = lastUpdate;
+            }
+
+            // 更新按钮状态
+            const startButton = document.getElementById('start-button');
+            const stopButton = document.getElementById('stop-button');
+            if (startButton && stopButton) {
+                startButton.disabled = status.isRunning;
+                stopButton.disabled = !status.isRunning;
+            }
+        } else {
+            console.error('获取状态失败:', response.statusText);
+        }
+    } catch (error) {
+        console.error('更新状态出错:', error);
+    }
+}
+
+// 启动状态更新定时器
+function startStatusUpdateInterval() {
+    if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+    }
+    // 每5秒更新一次状态
+    statusUpdateInterval = setInterval(updateServiceStatus, 5000);
+    // 立即更新一次状态
+    updateServiceStatus();
+}
+
+// 停止状态更新定时器
+function stopStatusUpdateInterval() {
+    if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
+    }
+}
+
+// 添加日志的函数
+function addLog(message) {
+    const logContainer = document.getElementById('log-container');
+    if (logContainer) {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.innerHTML = `
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+            <span class="log-message">${message}</span>
+        `;
+        logContainer.appendChild(logEntry);
+        // 滚动到底部
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+}
+
+// 显示提示消息的函数
+function showToast(title, message, type) {
+    // 使用Bootstrap的Toast组件
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        return;
+    }
+
+    const toastElement = document.createElement('div');
+    toastElement.className = `toast bg-${type}`;
+    toastElement.setAttribute('role', 'alert');
+    toastElement.setAttribute('aria-live', 'assertive');
+    toastElement.setAttribute('aria-atomic', 'true');
+
+    toastElement.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-white">
+            ${message}
+        </div>
+    `;
+
+    toastContainer.appendChild(toastElement);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+
+    // 监听关闭事件，移除元素
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
 
 // 配置文件处理相关函数
 function handleFileSelect(event) {
@@ -276,40 +419,3 @@ function loadSavedConfig() {
         }
     }
 }
-
-// 添加日志的辅助函数
-function addLog(message) {
-    const logContainer = document.getElementById('log-container');
-    const logElement = document.createElement('div');
-    logElement.className = 'log-entry';
-    logElement.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString()}]</span> ${message}`;
-    logContainer.appendChild(logElement);
-    // 滚动到底部
-    logContainer.scrollTop = logContainer.scrollHeight;
-}
-
-// 通用工具函数
-function showToast(title, message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer');
-    const toastId = 'toast-' + Date.now();
-    
-    const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <strong>${title}</strong>: ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `;
-    
-    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
-    toast.show();
-    
-    toastElement.addEventListener('hidden.bs.toast', function () {
-        toastElement.remove();
-    });
-} 

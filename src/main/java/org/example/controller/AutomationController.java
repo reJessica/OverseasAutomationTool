@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @CrossOrigin
@@ -92,6 +93,36 @@ public class AutomationController {
             String errorMsg = "服务启动过程中发生错误: " + e.getMessage();
             logger.error(errorMsg, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+
+    @GetMapping("/stop")
+    public ResponseEntity<String> stopService() {
+        try {
+            logger.info("正在停止自动化服务");
+            smartSolveAutomationService.stopService();
+            logger.info("服务已成功停止");
+            return ResponseEntity.ok("服务已停止");
+        } catch (Exception e) {
+            String errorMsg = "停止服务时发生错误: " + e.getMessage();
+            logger.error(errorMsg, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getStatus() {
+        try {
+            logger.info("正在获取服务状态");
+            Map<String, Object> status = new HashMap<>();
+            status.put("isRunning", smartSolveAutomationService.isRunning());
+            status.put("processedCount", smartSolveAutomationService.getProcessedCount());
+            status.put("lastUpdateTime", smartSolveAutomationService.getLastUpdateTime());
+            logger.info("服务状态获取成功");
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            logger.error("获取服务状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }
