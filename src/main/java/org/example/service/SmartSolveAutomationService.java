@@ -579,18 +579,6 @@ public class SmartSolveAutomationService {
 
         // 获取当前URL并保存为报告链接
         String reportUrl = webDriver.getCurrentUrl();
-        // 修改URL，确保是view report页面的URL
-        if (reportUrl.contains("Details.aspx")) {
-            reportUrl = reportUrl.replace("Details.aspx", "ViewReport.aspx");
-        }
-        // 等待页面加载完成
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        // 再次获取URL，确保是view report页面的URL
-        reportUrl = webDriver.getCurrentUrl();
         addReportLink(cellText_record_number, reportUrl);
 
         // 刷新 开始获取view report界面里的字段
