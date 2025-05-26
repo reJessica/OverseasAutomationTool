@@ -28,8 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
         displayConfig(currentConfig);
     }
 
-    // 恢复服务状态
+    // 恢复服务状态和数据
     restoreServiceStatus();
+    restoreSessionData();
 
     // 配置管理事件监听
     if (importButton) {
@@ -188,28 +189,25 @@ function addLog(message) {
         // 添加到容器顶部
         logContainer.insertBefore(logEntry, logContainer.firstChild);
         
-        // 如果日志条目超过限制，删除最旧的
-        while (logContainer.children.length > MAX_LOGS) {
+        // 如果日志条目超过100条，删除最旧的
+        while (logContainer.children.length > 100) {
             logContainer.removeChild(logContainer.lastChild);
         }
         
         // 滚动到顶部（因为新日志在顶部）
         logContainer.scrollTop = 0;
 
-        // 保存日志到localStorage
-        const logs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
+        // 保存到会话存储
+        const logs = JSON.parse(sessionStorage.getItem('serviceLogs') || '[]');
         logs.unshift({
             date: dateString,
             time: timeString,
             message: message
         });
-        
-        // 限制存储的日志数量
-        while (logs.length > MAX_LOGS) {
+        while (logs.length > 100) {
             logs.pop();
         }
-        
-        localStorage.setItem('serviceLogs', JSON.stringify(logs));
+        sessionStorage.setItem('serviceLogs', JSON.stringify(logs));
     }
 }
 
@@ -357,6 +355,73 @@ function loadSavedConfig() {
     }
 }
 
+// 添加报告链接
+function addReportLink(number, url) {
+    const linksContainer = document.getElementById('report-links-container');
+    if (linksContainer) {
+        const linkDiv = document.createElement('div');
+        linkDiv.className = 'report-link-item mb-2';
+        linkDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <span class="me-2">报告编号: ${number}</span>
+                <a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-box-arrow-up-right"></i> 查看报告
+                </a>
+            </div>
+        `;
+        linksContainer.appendChild(linkDiv);
+
+        // 保存到会话存储
+        const links = JSON.parse(sessionStorage.getItem('reportLinks') || '[]');
+        links.push({ number, url });
+        sessionStorage.setItem('reportLinks', JSON.stringify(links));
+    }
+}
+
+// 恢复会话数据
+function restoreSessionData() {
+    // 恢复日志
+    const savedLogs = JSON.parse(sessionStorage.getItem('serviceLogs') || '[]');
+    const logContainer = document.getElementById('log-container');
+    if (logContainer && savedLogs.length > 0) {
+        logContainer.innerHTML = '';
+        savedLogs.forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <div class="log-header">
+                    <span class="log-date">${log.date}</span>
+                    <span class="log-time">${log.time}</span>
+                </div>
+                <div class="log-content">
+                    <span class="log-message">${log.message}</span>
+                </div>
+            `;
+            logContainer.appendChild(logEntry);
+        });
+    }
+
+    // 恢复报告链接
+    const savedLinks = JSON.parse(sessionStorage.getItem('reportLinks') || '[]');
+    const linksContainer = document.getElementById('report-links-container');
+    if (linksContainer && savedLinks.length > 0) {
+        linksContainer.innerHTML = '';
+        savedLinks.forEach(link => {
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'report-link-item mb-2';
+            linkDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <span class="me-2">报告编号: ${link.number}</span>
+                    <a href="${link.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> 查看报告
+                    </a>
+                </div>
+            `;
+            linksContainer.appendChild(linkDiv);
+        });
+    }
+}
+
 async function startService() {
     try {
         // 检查是否有配置
@@ -374,6 +439,13 @@ async function startService() {
         // 禁用启动按钮，启用停止按钮
         document.getElementById('start-button').disabled = true;
         document.getElementById('stop-button').disabled = false;
+
+        // 清空之前的数据
+        document.getElementById('log-container').innerHTML = '';
+        document.getElementById('report-links-container').innerHTML = '';
+        sessionStorage.removeItem('serviceLogs');
+        sessionStorage.removeItem('reportLinks');
+        
         addLog('服务运行中，请等待...');
 
         // 首先发送配置
@@ -408,7 +480,11 @@ async function startService() {
 
         const result = await startResponse.json();
         if (Array.isArray(result)) {
-            result.forEach(log => addLog(log.join(' - ')));
+            result.forEach(log => {
+                const [number, url] = log;
+                addLog(`处理报告: ${number}`);
+                addReportLink(number, url);
+            });
         }
 
         showToast('成功', '服务已启动', 'success');
@@ -449,27 +525,6 @@ async function stopService() {
 
 // 恢复服务状态
 async function restoreServiceStatus() {
-    // 恢复日志
-    const savedLogs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
-    const logContainer = document.getElementById('log-container');
-    if (logContainer && savedLogs.length > 0) {
-        logContainer.innerHTML = ''; // 清空现有日志
-        savedLogs.forEach(log => {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.innerHTML = `
-                <div class="log-header">
-                    <span class="log-date">${log.date}</span>
-                    <span class="log-time">${log.time}</span>
-                </div>
-                <div class="log-content">
-                    <span class="log-message">${log.message}</span>
-                </div>
-            `;
-            logContainer.appendChild(logEntry);
-        });
-    }
-
     const savedStatus = localStorage.getItem('serviceStatus');
     if (savedStatus === 'running') {
         // 如果之前服务是运行状态，检查当前实际状态
