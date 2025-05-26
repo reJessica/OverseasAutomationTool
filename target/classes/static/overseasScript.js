@@ -3,6 +3,7 @@ let currentConfig = null;
 let isEditing = false;
 let statusUpdateInterval = null;
 let lastProcessedCount = 0;  // 用于跟踪上次处理的数据量
+const MAX_LOGS = 100;  // 最大日志条数
 
 // 初始化事件监听
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,6 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const stopButton = document.getElementById('stop-button');
     const refreshButton = document.getElementById('refresh-button');
     const logContainer = document.getElementById('log-container');
+
+    // 恢复配置
+    const savedConfig = localStorage.getItem('overseasConfig');
+    if (savedConfig) {
+        currentConfig = JSON.parse(savedConfig);
+        displayConfig(currentConfig);
+    }
+
+    // 恢复服务状态
+    restoreServiceStatus();
 
     // 配置管理事件监听
     if (importButton) {
@@ -49,166 +60,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 服务控制事件监听
     if (startButton) {
-        startButton.addEventListener('click', async () => {
-            try {
-                // 检查是否有配置
-                if (!currentConfig) {
-                    showToast('错误', '请先导入或设置配置', 'danger');
-                    return;
-                }
-
-                // 检查配置是否完整
-                if (!currentConfig.templateFilePath || !currentConfig.logFilePath) {
-                    showToast('错误', '配置信息不完整，请确保模板文件路径和日志文件路径都已设置', 'danger');
-                    return;
-                }
-
-                // 禁用启动按钮，启用停止按钮
-                startButton.disabled = true;
-                stopButton.disabled = false;
-                addLog('服务运行中，请等待...');
-
-                // 清空之前的日志数据
-                logContainer.innerHTML = '';
-
-                // 首先发送配置
-                addLog('正在更新配置...');
-                const configResponse = await fetch('/automation/config', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(currentConfig)
-                });
-
-                if (!configResponse.ok) {
-                    const errorText = await configResponse.text();
-                    throw new Error(`配置更新失败: ${errorText}`);
-                }
-
-                addLog('配置更新成功，正在启动服务...');
-
-                // 调用后端接口启动服务
-                const startResponse = await fetch('/automation/start');
-                
-                // 添加响应调试信息
-                console.log('收到响应:', {
-                    status: startResponse.status,
-                    statusText: startResponse.statusText,
-                    headers: Object.fromEntries(startResponse.headers.entries())
-                });
-
-                if (startResponse.ok) {
-                    addLog('服务启动成功，正在获取响应数据...');
-                    const responseData = await startResponse.json();
-                    
-                    // 检查响应数据类型
-                    if (typeof responseData === 'string') {
-                        // 如果是字符串，可能是错误消息
-                        addLog(responseData);
-                        showToast('警告', responseData, 'warning');
-                        return;
-                    }
-
-                    if (!Array.isArray(responseData)) {
-                        addLog('警告：返回的数据格式不是数组');
-                        console.warn('非预期的数据格式:', responseData);
-                        return;
-                    }
-
-                    // 启动状态更新定时器
-                    startStatusUpdateInterval();
-                    
-                    // 处理响应数据
-                    if (responseData && Array.isArray(responseData)) {
-                        const linksContainer = document.getElementById('report-links-container');
-                        // 保留现有链接，不清除
-                        
-                        responseData.forEach(log => {
-                            // 添加到报告链接区域
-                            const linkDiv = document.createElement('div');
-                            linkDiv.className = 'report-link-item mb-2';
-                            linkDiv.innerHTML = `
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">报告编号: ${log[0]}</span>
-                                    <a href="${log[1]}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-box-arrow-up-right"></i> 查看报告
-                                    </a>
-                                </div>
-                            `;
-                            linksContainer.appendChild(linkDiv);
-                            
-                            // 添加基本日志信息
-                            addLog(`开始处理报告: ${log[0]}`);
-                        });
-                        
-                        // 更新处理数据量
-                        const currentCount = parseInt(document.getElementById('data-count').textContent || '0');
-                        document.getElementById('data-count').textContent = (currentCount + responseData.length).toString();
-                    }
-                    
-                    showToast('成功', '服务启动成功', 'success');
-                } else {
-                    const errorText = await startResponse.text();
-                    const errorMessage = `服务启动失败 (HTTP ${startResponse.status}): ${errorText}`;
-                    console.error(errorMessage);
-                    addLog(errorMessage);
-                    showToast('错误', errorMessage, 'danger');
-                }
-            } catch (error) {
-                const errorMessage = `请求出错: ${error.message}`;
-                console.error(errorMessage, error);
-                addLog(errorMessage);
-                showToast('错误', errorMessage, 'danger');
-            } finally {
-                // 启用按钮
-                startButton.disabled = false;
-            }
-        });
+        startButton.addEventListener('click', startService);
     }
 
-    // 停止服务按钮事件监听
     if (stopButton) {
-        stopButton.addEventListener('click', async () => {
-            try {
-                stopButton.disabled = true;
-                addLog('正在停止服务...');
-
-                const response = await fetch('/automation/stop');
-                if (response.ok) {
-                    addLog('服务已停止');
-                    showToast('成功', '服务已停止', 'success');
-                    // 停止状态更新
-                    stopStatusUpdateInterval();
-                    // 重置按钮状态
-                    startButton.disabled = false;
-                    stopButton.disabled = true;
-                    // 更新状态显示
-                    document.getElementById('service-status').textContent = '未运行';
-                    document.getElementById('data-count').textContent = '0';
-                } else {
-                    const errorText = await response.text();
-                    throw new Error(`停止服务失败: ${errorText}`);
-                }
-            } catch (error) {
-                const errorMessage = `停止服务出错: ${error.message}`;
-                console.error(errorMessage);
-                addLog(errorMessage);
-                showToast('错误', errorMessage, 'danger');
-                stopButton.disabled = false;
-            }
-        });
+        stopButton.addEventListener('click', stopService);
     }
 
-    // 刷新状态按钮事件监听
     if (refreshButton) {
         refreshButton.addEventListener('click', () => {
             updateServiceStatus();
         });
     }
 
-    // 尝试加载已保存的配置
-    loadSavedConfig();
+    // 启动状态更新定时器
+    startStatusUpdateInterval();
 });
 
 // 更新服务状态的函数
@@ -264,6 +130,11 @@ async function updateServiceStatus() {
                 startButton.disabled = status.isRunning;
                 stopButton.disabled = !status.isRunning;
             }
+
+            // 保存状态到localStorage
+            localStorage.setItem('serviceStatus', status.isRunning ? 'running' : 'stopped');
+            localStorage.setItem('lastProcessedCount', status.processedCount || '0');
+            localStorage.setItem('lastUpdateTime', status.lastUpdateTime || '');
         } else {
             console.error('获取状态失败:', response.statusText);
             addLog('获取服务状态失败');
@@ -276,13 +147,10 @@ async function updateServiceStatus() {
 
 // 启动状态更新定时器
 function startStatusUpdateInterval() {
-    if (statusUpdateInterval) {
-        clearInterval(statusUpdateInterval);
+    if (!statusUpdateInterval) {
+        updateServiceStatus(); // 立即更新一次
+        statusUpdateInterval = setInterval(updateServiceStatus, 5000); // 每5秒更新一次
     }
-    // 立即执行一次
-    updateServiceStatus();
-    // 每1分钟更新一次状态
-    statusUpdateInterval = setInterval(updateServiceStatus, 60000);
 }
 
 // 停止状态更新定时器
@@ -320,13 +188,28 @@ function addLog(message) {
         // 添加到容器顶部
         logContainer.insertBefore(logEntry, logContainer.firstChild);
         
-        // 如果日志条目超过100条，删除最旧的
-        while (logContainer.children.length > 100) {
+        // 如果日志条目超过限制，删除最旧的
+        while (logContainer.children.length > MAX_LOGS) {
             logContainer.removeChild(logContainer.lastChild);
         }
         
         // 滚动到顶部（因为新日志在顶部）
         logContainer.scrollTop = 0;
+
+        // 保存日志到localStorage
+        const logs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
+        logs.unshift({
+            date: dateString,
+            time: timeString,
+            message: message
+        });
+        
+        // 限制存储的日志数量
+        while (logs.length > MAX_LOGS) {
+            logs.pop();
+        }
+        
+        localStorage.setItem('serviceLogs', JSON.stringify(logs));
     }
 }
 
@@ -470,6 +353,161 @@ function loadSavedConfig() {
             displayConfig(currentConfig);
         } catch (error) {
             console.error('Failed to load saved config:', error);
+        }
+    }
+}
+
+async function startService() {
+    try {
+        // 检查是否有配置
+        if (!currentConfig) {
+            showToast('错误', '请先导入或设置配置', 'danger');
+            return;
+        }
+
+        // 检查配置是否完整
+        if (!currentConfig.templateFilePath || !currentConfig.logFilePath) {
+            showToast('错误', '配置信息不完整，请确保模板文件路径和日志文件路径都已设置', 'danger');
+            return;
+        }
+
+        // 禁用启动按钮，启用停止按钮
+        document.getElementById('start-button').disabled = true;
+        document.getElementById('stop-button').disabled = false;
+        addLog('服务运行中，请等待...');
+
+        // 首先发送配置
+        addLog('正在更新配置...');
+        const configResponse = await fetch('/automation/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(currentConfig)
+        });
+
+        if (!configResponse.ok) {
+            const errorText = await configResponse.text();
+            throw new Error(`配置更新失败: ${errorText}`);
+        }
+
+        addLog('配置更新成功，正在启动服务...');
+
+        // 调用后端接口启动服务
+        const startResponse = await fetch('/automation/start');
+        if (!startResponse.ok) {
+            const errorText = await startResponse.text();
+            throw new Error(`服务启动失败: ${errorText}`);
+        }
+
+        // 保存服务状态
+        localStorage.setItem('serviceStatus', 'running');
+        
+        // 启动状态更新定时器
+        startStatusUpdateInterval();
+
+        const result = await startResponse.json();
+        if (Array.isArray(result)) {
+            result.forEach(log => addLog(log.join(' - ')));
+        }
+
+        showToast('成功', '服务已启动', 'success');
+    } catch (error) {
+        console.error('启动服务失败:', error);
+        document.getElementById('start-button').disabled = false;
+        document.getElementById('stop-button').disabled = true;
+        showToast('错误', `启动服务失败: ${error.message}`, 'danger');
+        localStorage.setItem('serviceStatus', 'stopped');
+    }
+}
+
+async function stopService() {
+    try {
+        const response = await fetch('/automation/stop');
+        if (!response.ok) {
+            throw new Error(`停止服务失败: ${response.statusText}`);
+        }
+
+        document.getElementById('start-button').disabled = false;
+        document.getElementById('stop-button').disabled = true;
+        addLog('服务已停止');
+        showToast('成功', '服务已停止', 'success');
+
+        // 保存服务状态
+        localStorage.setItem('serviceStatus', 'stopped');
+        
+        // 清除状态更新定时器
+        if (statusUpdateInterval) {
+            clearInterval(statusUpdateInterval);
+            statusUpdateInterval = null;
+        }
+    } catch (error) {
+        console.error('停止服务失败:', error);
+        showToast('错误', `停止服务失败: ${error.message}`, 'danger');
+    }
+}
+
+// 恢复服务状态
+async function restoreServiceStatus() {
+    // 恢复日志
+    const savedLogs = JSON.parse(localStorage.getItem('serviceLogs') || '[]');
+    const logContainer = document.getElementById('log-container');
+    if (logContainer && savedLogs.length > 0) {
+        logContainer.innerHTML = ''; // 清空现有日志
+        savedLogs.forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <div class="log-header">
+                    <span class="log-date">${log.date}</span>
+                    <span class="log-time">${log.time}</span>
+                </div>
+                <div class="log-content">
+                    <span class="log-message">${log.message}</span>
+                </div>
+            `;
+            logContainer.appendChild(logEntry);
+        });
+    }
+
+    const savedStatus = localStorage.getItem('serviceStatus');
+    if (savedStatus === 'running') {
+        // 如果之前服务是运行状态，检查当前实际状态
+        try {
+            const response = await fetch('/automation/status');
+            if (response.ok) {
+                const status = await response.json();
+                if (status.isRunning) {
+                    // 如果服务确实在运行，启动状态更新
+                    document.getElementById('start-button').disabled = true;
+                    document.getElementById('stop-button').disabled = false;
+                    startStatusUpdateInterval();
+                } else {
+                    // 如果服务实际上没有运行，更新本地存储
+                    localStorage.setItem('serviceStatus', 'stopped');
+                }
+            }
+        } catch (error) {
+            console.error('恢复服务状态失败:', error);
+            localStorage.setItem('serviceStatus', 'stopped');
+        }
+    }
+
+    // 恢复其他状态
+    const savedProcessedCount = localStorage.getItem('lastProcessedCount');
+    if (savedProcessedCount) {
+        const dataCountElement = document.getElementById('data-count');
+        if (dataCountElement) {
+            dataCountElement.textContent = savedProcessedCount;
+        }
+    }
+
+    const savedLastUpdateTime = localStorage.getItem('lastUpdateTime');
+    if (savedLastUpdateTime) {
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            const lastUpdate = new Date(savedLastUpdateTime);
+            lastUpdateElement.textContent = lastUpdate.toLocaleString();
         }
     }
 }
