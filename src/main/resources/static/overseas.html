@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overseas Module - 自动化服务平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html">自动化服务平台</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">首页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Overseas</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-4">
+        <div class="row">
+            <!-- 左侧：配置管理 -->
+            <div class="col-md-6">
+                <!-- 配置文件导入 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">配置管理</h5>
+                        <div class="btn-group">
+                            <button id="import-config-button" class="btn btn-sm btn-primary">
+                                <i class="bi bi-upload"></i> 导入
+                            </button>
+                            <button id="export-config-button" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> 导出
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <input type="file" id="config-file-input" accept=".json" class="form-control" style="display: none;">
+                        <div id="config-table-container" class="table-responsive">
+                            <!-- 配置表格将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="mt-3 text-end">
+                            <button class="btn btn-sm btn-outline-primary" id="edit-config">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" id="save-config" style="display: none;">
+                                <i class="bi bi-check-lg"></i> 保存
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" id="cancel-edit" style="display: none;">
+                                <i class="bi bi-x-lg"></i> 取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：服务控制和状态 -->
+            <div class="col-md-6">
+                <!-- 服务控制面板 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">服务控制</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-3 mb-4">
+                            <button id="start-button" class="btn btn-success">
+                                <i class="bi bi-play-fill"></i> 启动服务
+                            </button>
+                            <button id="stop-button" class="btn btn-danger" disabled>
+                                <i class="bi bi-stop-fill"></i> 停止服务
+                            </button>
+                            <button id="refresh-button" class="btn btn-primary">
+                                <i class="bi bi-arrow-clockwise"></i> 刷新状态
+                            </button>
+                        </div>
+                        <div id="status-container">
+                            <div class="status-item">
+                                <span class="status-label">服务状态：</span>
+                                <span class="status-value" id="service-status">未运行</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">最近更新：</span>
+                                <span class="status-value" id="last-update">--</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">处理数据量：</span>
+                                <span class="status-value" id="data-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 日志面板 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">运行日志</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="clear-log">
+                            <i class="bi bi-trash"></i> 清除日志
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="log-container" class="custom-scrollbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 提示框 -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toastContainer"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"></script>
+    <script src="configScript.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html> 
