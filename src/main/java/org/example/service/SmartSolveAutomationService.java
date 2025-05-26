@@ -577,9 +577,9 @@ public class SmartSolveAutomationService {
         }
         System.out.println("进入view report界面");
 
-        // 获取当前URL并保存为报告链接
-        String reportUrl = webDriver.getCurrentUrl();
-        addReportLink(cellText_record_number, reportUrl);
+        // // 获取当前URL并保存为报告链接
+        // String reportUrl = webDriver.getCurrentUrl();
+        // addReportLink(cellText_record_number, reportUrl);
 
         // 刷新 开始获取view report界面里的字段
         // 获取所有窗口句柄
