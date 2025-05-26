@@ -131,17 +131,9 @@ async function updateServiceStatus() {
             const startButton = document.getElementById('start-button');
             const stopButton = document.getElementById('stop-button');
             if (startButton && stopButton) {
-                // 检查服务是否已经停止过
-                const serviceStopped = localStorage.getItem('serviceStopped') === 'true';
-                if (serviceStopped) {
-                    // 如果服务已经停止过，保持启动按钮禁用
-                    startButton.disabled = true;
-                    stopButton.disabled = true;
-                } else {
-                    // 否则根据当前状态设置按钮
-                    startButton.disabled = status.isRunning;
-                    stopButton.disabled = !status.isRunning;
-                }
+                // 根据当前状态设置按钮
+                startButton.disabled = status.isRunning;
+                stopButton.disabled = !status.isRunning;
             }
 
             // 保存状态到localStorage
@@ -558,7 +550,6 @@ async function stopService() {
 
         // 保存服务状态
         localStorage.setItem('serviceStatus', 'stopped');
-        localStorage.setItem('serviceStopped', 'true');  // 添加标记表示服务已停止
         
         // 清除状态更新定时器
         if (statusUpdateInterval) {
