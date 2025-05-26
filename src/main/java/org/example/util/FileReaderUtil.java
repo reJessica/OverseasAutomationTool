@@ -37,10 +37,21 @@ public class FileReaderUtil {
 
     public static List<List<String>> readExcelFile(String filePath) {
         List<List<String>> data = new ArrayList<>();
-        try (FileInputStream file = new FileInputStream(new File(filePath));
-             Workbook workbook = getWorkbook(file)) {
+        System.out.println("开始读取Excel文件: " + filePath);
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.out.println("错误：文件不存在！");
+            return data;
+        }
+        System.out.println("文件大小: " + file.length() + " bytes");
+        
+        try (FileInputStream fis = new FileInputStream(file);
+             Workbook workbook = getWorkbook(fis)) {
+            System.out.println("成功打开工作簿");
             // 获取第一个工作表
             Sheet sheet = workbook.getSheetAt(0);
+            System.out.println("获取到工作表，总行数: " + sheet.getPhysicalNumberOfRows());
+            
             // 遍历每一行
             Iterator<Row> rowIterator = sheet.iterator();
             while (rowIterator.hasNext()) {

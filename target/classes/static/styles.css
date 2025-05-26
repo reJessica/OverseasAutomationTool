@@ -1,144 +1,268 @@
 /* 全局样式 */
+:root {
+    --primary-color: #2962ff;
+    --primary-light: #768fff;
+    --primary-dark: #0039cb;
+    --secondary-color: #f5f5f5;
+    --text-primary: #2c3e50;
+    --text-secondary: #546e7a;
+    --success-color: #00c853;
+    --card-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    --transition-speed: 0.3s;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
 }
 
-/* 头部栏样式 */
-.headbar {
-    background-color: #007BFF;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    color: white;
+/* 导航栏样式 */
+.navbar {
+    background: linear-gradient(120deg, var(--primary-color), var(--primary-dark));
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.headbar h1 {
-    margin: 0;
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    background: linear-gradient(120deg, #ffffff, #e3f2fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
-/* 头部导航样式 */
-.header-nav {
-    display: flex;
-    align-items: center;
+.nav-link {
+    position: relative;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all var(--transition-speed) ease;
 }
 
-/* 修正类名，去掉空格 */
-.header-btn {
-    color: white;
-    text-decoration: none;
-    margin-left: 10px;
-    padding: 5px 10px;
-    border-radius: 3px;
-    /* 修正transition属性值的格式 */
-    transition: background-color 0.3s ease;
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: #fff;
+    transition: all var(--transition-speed) ease;
 }
 
-.header-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* 主面板样式 */
-.main-panel {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    margin: 20px auto;
-    width: 80%;
-    max-width: 600px;
-}
-
-/* 标签样式 */
-label {
-    margin-bottom: 10px;
-    font-size: 16px;
-    color: #333;
-}
-
-/* 按钮样式 */
-button {
-    padding: 10px 20px;
-    margin-bottom: 20px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* 进度条容器样式 */
-.progress-container {
+.nav-link:hover::after {
     width: 100%;
-    background-color: #f3f3f3;
-    border-radius: 5px;
+    left: 0;
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
 }
 
-/* 进度条样式 */
-.progress-bar {
-    width: 0%;
-    height: 30px;
-    background-color: #4CAF50;
-    text-align: center;
-    line-height: 30px;
-    color: white;
-    border-radius: 5px;
-    transition: width 0.5s ease;
+.card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
 }
 
-/* log-container 整体样式 */
-#log-container {
-    width: 100%;
-    margin-top: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
-    padding: 15px;
-    overflow-y: auto;
-    max-height: 300px; /* 设置最大高度，超出部分可滚动 */
+.card-body {
+    padding: 2rem;
 }
 
-/* log-container 内每行的样式 */
-#log-container div {
+.card-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.card-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    border-radius: 3px;
+}
+
+.card-text {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 0 4px 15px rgba(41, 98, 255, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.3);
+}
+
+/* 列表样式 */
+.list-unstyled li {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all var(--transition-speed) ease;
 }
 
-/* 最后一行去掉底部边框 */
-#log-container div:last-child {
-    border-bottom: none;
+.list-unstyled li:hover {
+    background: rgba(41, 98, 255, 0.05);
+    transform: translateX(5px);
 }
 
-/* log-container 内每个单元格（span 元素）的样式 */
-#log-container span {
-    margin-right: 15px;
-    color: #333;
-    font-size: 14px;
+.list-unstyled li::before {
+    content: "✓";
+    color: var(--success-color);
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 200, 83, 0.1);
+    border-radius: 50%;
 }
 
-/* log-container 内超链接的样式 */
-#log-container a {
-    color: #007BFF;
-    text-decoration: none;
-    transition: color 0.3s ease;
+/* 状态面板样式 */
+#status-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 2rem 0;
 }
 
-#log-container a:hover {
-    color: #0056b3;
-    text-decoration: underline;
+.status-item {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: all var(--transition-speed) ease;
 }
+
+.status-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.status-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-right: 1rem;
+}
+
+.status-value {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* 日志容器样式 */
+#log-container {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#log-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#log-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+#log-container::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+#log-container div {
+    padding: 0.8rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    color: var(--text-primary);
+    transition: all var(--transition-speed) ease;
+}
+
+#log-container div:hover {
+    background: rgba(41, 98, 255, 0.05);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .status-item {
+        width: 100%;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+/* 添加动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }

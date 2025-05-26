@@ -45,6 +45,9 @@ public class SmartSolveAutomationService {
     private List<List<String>> log = new ArrayList<>();
 
     public void automateAndDownloadFile() {
+        // System.out.println("Template file path: " + appConfig.getTemplateFilePath());
+        // System.out.println("Log file path: " + appConfig.getLogFilePath());
+        
         Instant start = Instant.now(); // 记录开始时间
 
         // 测试 读取NMPA来的template文件
@@ -113,7 +116,7 @@ public class SmartSolveAutomationService {
         System.out.println("Total Pages: " + totalPagesCount);
         System.out.println("Total Items: " + totalItemsCount);
 
-        // todo 为了确保每次循环都能处理当前页面的最新数据，需要在每次点击 “下一页” 按钮后，重新定位 tbody 元素，并重新获取 rows 列表。
+        // todo 为了确保每次循环都能处理当前页面的最新数据，需要在每次点击 "下一页" 按钮后，重新定位 tbody 元素，并重新获取 rows 列表。
         for (int i = 1; i <= totalPagesCount; i++) {
             System.out.println("当前页码");
             System.out.println(i);
