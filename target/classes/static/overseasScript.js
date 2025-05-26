@@ -2,6 +2,7 @@
 let currentConfig = null;
 let isEditing = false;
 let statusUpdateInterval = null;
+let lastProcessedCount = 0;  // 用于跟踪上次处理的数据量
 
 // 初始化事件监听
 document.addEventListener('DOMContentLoaded', function() {
@@ -218,12 +219,42 @@ async function updateServiceStatus() {
             const status = await response.json();
             
             // 更新状态显示
-            document.getElementById('service-status').textContent = status.isRunning ? '运行中' : '未运行';
-            document.getElementById('data-count').textContent = status.processedCount || '0';
+            const serviceStatus = document.getElementById('service-status');
+            if (serviceStatus) {
+                serviceStatus.textContent = status.isRunning ? '运行中' : '未运行';
+                serviceStatus.className = status.isRunning ? 'status-value text-success' : 'status-value text-secondary';
+            }
             
+            // 更新数据处理量并添加日志
+            const dataCount = document.getElementById('data-count');
+            if (dataCount) {
+                const currentCount = status.processedCount || 0;
+                dataCount.textContent = currentCount;
+                
+                // 如果数据量发生变化，添加日志
+                if (currentCount > lastProcessedCount) {
+                    const newRecords = currentCount - lastProcessedCount;
+                    addLog(`新处理了 ${newRecords} 条数据，总计: ${currentCount} 条`);
+                    lastProcessedCount = currentCount;
+                }
+            }
+            
+            // 更新最近更新时间
             if (status.lastUpdateTime) {
-                const lastUpdate = new Date(status.lastUpdateTime).toLocaleString();
-                document.getElementById('last-update').textContent = lastUpdate;
+                const lastUpdate = new Date(status.lastUpdateTime);
+                const now = new Date();
+                const timeDiff = Math.floor((now - lastUpdate) / 1000); // 秒数
+                
+                let timeString;
+                if (timeDiff < 60) {
+                    timeString = `${timeDiff}秒前`;
+                } else if (timeDiff < 3600) {
+                    timeString = `${Math.floor(timeDiff / 60)}分钟前`;
+                } else {
+                    timeString = lastUpdate.toLocaleString();
+                }
+                
+                document.getElementById('last-update').textContent = timeString;
             }
 
             // 更新按钮状态
@@ -235,9 +266,11 @@ async function updateServiceStatus() {
             }
         } else {
             console.error('获取状态失败:', response.statusText);
+            addLog('获取服务状态失败');
         }
     } catch (error) {
         console.error('更新状态出错:', error);
+        addLog(`状态更新失败: ${error.message}`);
     }
 }
 
@@ -246,10 +279,10 @@ function startStatusUpdateInterval() {
     if (statusUpdateInterval) {
         clearInterval(statusUpdateInterval);
     }
-    // 每5秒更新一次状态
-    statusUpdateInterval = setInterval(updateServiceStatus, 5000);
-    // 立即更新一次状态
+    // 立即执行一次
     updateServiceStatus();
+    // 每1分钟更新一次状态
+    statusUpdateInterval = setInterval(updateServiceStatus, 60000);
 }
 
 // 停止状态更新定时器
@@ -258,6 +291,7 @@ function stopStatusUpdateInterval() {
         clearInterval(statusUpdateInterval);
         statusUpdateInterval = null;
     }
+    lastProcessedCount = 0;
 }
 
 // 添加日志的函数
@@ -266,13 +300,33 @@ function addLog(message) {
     if (logContainer) {
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry';
+        
+        // 获取当前时间
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        const dateString = now.toLocaleDateString();
+        
+        // 创建日志内容
         logEntry.innerHTML = `
-            <span class="log-time">${new Date().toLocaleTimeString()}</span>
-            <span class="log-message">${message}</span>
+            <div class="log-header">
+                <span class="log-date">${dateString}</span>
+                <span class="log-time">${timeString}</span>
+            </div>
+            <div class="log-content">
+                <span class="log-message">${message}</span>
+            </div>
         `;
-        logContainer.appendChild(logEntry);
-        // 滚动到底部
-        logContainer.scrollTop = logContainer.scrollHeight;
+        
+        // 添加到容器顶部
+        logContainer.insertBefore(logEntry, logContainer.firstChild);
+        
+        // 如果日志条目超过100条，删除最旧的
+        while (logContainer.children.length > 100) {
+            logContainer.removeChild(logContainer.lastChild);
+        }
+        
+        // 滚动到顶部（因为新日志在顶部）
+        logContainer.scrollTop = 0;
     }
 }
 

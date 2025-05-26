@@ -198,6 +198,43 @@ body {
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
+.log-entry {
+    background: #fff;
+    margin-bottom: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.log-entry:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.log-date, .log-time {
+    background: rgba(0,0,0,0.05);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.log-content {
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.log-message {
+    word-break: break-word;
+}
+
 #log-container::-webkit-scrollbar {
     width: 8px;
 }
@@ -210,17 +247,6 @@ body {
 #log-container::-webkit-scrollbar-thumb {
     background: var(--primary-light);
     border-radius: 4px;
-}
-
-#log-container div {
-    padding: 0.8rem;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    color: var(--text-primary);
-    transition: all var(--transition-speed) ease;
-}
-
-#log-container div:hover {
-    background: rgba(41, 98, 255, 0.05);
 }
 
 /* 响应式调整 */
