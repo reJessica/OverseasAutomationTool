@@ -131,8 +131,17 @@ async function updateServiceStatus() {
             const startButton = document.getElementById('start-button');
             const stopButton = document.getElementById('stop-button');
             if (startButton && stopButton) {
-                startButton.disabled = status.isRunning;
-                stopButton.disabled = !status.isRunning;
+                // 检查服务是否已经停止过
+                const serviceStopped = localStorage.getItem('serviceStopped') === 'true';
+                if (serviceStopped) {
+                    // 如果服务已经停止过，保持启动按钮禁用
+                    startButton.disabled = true;
+                    stopButton.disabled = true;
+                } else {
+                    // 否则根据当前状态设置按钮
+                    startButton.disabled = status.isRunning;
+                    stopButton.disabled = !status.isRunning;
+                }
             }
 
             // 保存状态到localStorage
@@ -365,11 +374,16 @@ function addReportLink(number, url) {
         const linkDiv = document.createElement('div');
         linkDiv.className = 'report-link-item mb-2';
         linkDiv.innerHTML = `
-            <div class="d-flex align-items-center">
-                <span class="me-2">报告编号: ${number}</span>
-                <a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-box-arrow-up-right"></i> 查看报告
-                </a>
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    <span class="report-number">报告编号: ${number}</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <a href="${url}" target="_blank" class="btn btn-sm btn-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>查看报告
+                    </a>
+                </div>
             </div>
         `;
         linksContainer.appendChild(linkDiv);
@@ -536,13 +550,15 @@ async function stopService() {
             throw new Error(`停止服务失败: ${response.statusText}`);
         }
 
-        document.getElementById('start-button').disabled = false;
+        // 禁用启动按钮，保持停止按钮禁用
+        document.getElementById('start-button').disabled = true;
         document.getElementById('stop-button').disabled = true;
         addLog('服务已停止');
         showToast('成功', '服务已停止', 'success');
 
         // 保存服务状态
         localStorage.setItem('serviceStatus', 'stopped');
+        localStorage.setItem('serviceStopped', 'true');  // 添加标记表示服务已停止
         
         // 清除状态更新定时器
         if (statusUpdateInterval) {

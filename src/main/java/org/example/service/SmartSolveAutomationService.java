@@ -46,6 +46,7 @@ public class SmartSolveAutomationService {
     private List<List<String>> log = new ArrayList<>();
 
     private volatile boolean isRunning = false;
+    private volatile boolean isStopped = false;  // 添加新的标志位
     private Instant lastUpdateTime = null;
 
     @Autowired
@@ -56,6 +57,9 @@ public class SmartSolveAutomationService {
     public void automateAndDownloadFile() {
         if (isRunning) {
             throw new IllegalStateException("服务已在运行中");
+        }
+        if (isStopped) {
+            throw new IllegalStateException("服务已停止，无法再次启动");
         }
         isRunning = true;
         lastUpdateTime = Instant.now();
@@ -575,6 +579,10 @@ public class SmartSolveAutomationService {
 
         // 获取当前URL并保存为报告链接
         String reportUrl = webDriver.getCurrentUrl();
+        // 修改URL，确保是view report页面的URL
+        if (reportUrl.contains("Details.aspx")) {
+            reportUrl = reportUrl.replace("Details.aspx", "ViewReport.aspx");
+        }
         addReportLink(cellText_record_number, reportUrl);
 
         // 刷新 开始获取view report界面里的字段
@@ -1233,6 +1241,7 @@ public class SmartSolveAutomationService {
             }
         } finally {
             isRunning = false;
+            isStopped = true;  // 设置停止标志
             windowHandlesList.clear();
             textsNeedtoBeInserted.clear();
             textsNeedtoBeInserted_en.clear();
