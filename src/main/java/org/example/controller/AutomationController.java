@@ -125,4 +125,16 @@ public class AutomationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @GetMapping("/report-links")
+    public ResponseEntity<List<Map<String, String>>> getReportLinks() {
+        try {
+            logger.info("正在获取报告链接");
+            List<Map<String, String>> links = smartSolveAutomationService.getReportLinks();
+            return ResponseEntity.ok(links);
+        } catch (Exception e) {
+            logger.error("获取报告链接失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

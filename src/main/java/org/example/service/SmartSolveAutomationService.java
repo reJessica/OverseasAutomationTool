@@ -51,6 +51,8 @@ public class SmartSolveAutomationService {
     @Autowired
     private ApplicationContext applicationContext;
 
+    private List<Map<String, String>> reportLinks = new ArrayList<>();
+
     public void automateAndDownloadFile() {
         if (isRunning) {
             throw new IllegalStateException("服务已在运行中");
@@ -60,6 +62,10 @@ public class SmartSolveAutomationService {
         Instant start = Instant.now();
         
         try {
+            // 清空报告链接
+            clearReportLinks();
+            System.out.println("服务启动，清空历史报告链接");  // 添加日志
+            
             // 重新获取WebDriver实例
             webDriver = applicationContext.getBean(WebDriver.class);
             windowHandlesList.clear();
@@ -555,7 +561,6 @@ public class SmartSolveAutomationService {
         }
 
         //点击 view report
-        // /html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[2]/div/div[1]/div/div[1]/div/ul/li[2]/div[2]/a
         WebElement vieweportButton = webDriver.findElement(By.xpath("/html/body/div/form/div[4]/div/div[10]/div[3]/div[2]/div/div/div/div[3]/div[1]/div/div[2]/div/div[1]/div/div[1]/div/ul/li[2]/div[2]/a"));
         JavascriptExecutor js_view = (JavascriptExecutor) webDriver;
         js_view.executeScript("arguments[0].click();", vieweportButton);
@@ -567,6 +572,10 @@ public class SmartSolveAutomationService {
             e.printStackTrace();
         }
         System.out.println("进入view report界面");
+
+        // 获取当前URL并保存为报告链接
+        String reportUrl = webDriver.getCurrentUrl();
+        addReportLink(cellText_record_number, reportUrl);
 
         // 刷新 开始获取view report界面里的字段
         // 获取所有窗口句柄
@@ -1242,5 +1251,23 @@ public class SmartSolveAutomationService {
 
     public Instant getLastUpdateTime() {
         return lastUpdateTime;
+    }
+
+    public void addReportLink(String number, String url) {
+        Map<String, String> link = new HashMap<>();
+        link.put("number", number);
+        link.put("url", url);
+        reportLinks.add(link);
+        System.out.println("添加报告链接 - 编号: " + number + ", URL: " + url);  // 添加日志
+    }
+
+    public List<Map<String, String>> getReportLinks() {
+        System.out.println("获取报告链接 - 当前数量: " + reportLinks.size());  // 添加日志
+        return reportLinks;
+    }
+
+    public void clearReportLinks() {
+        System.out.println("清空报告链接");  // 添加日志
+        reportLinks.clear();
     }
 }

@@ -103,6 +103,9 @@ async function updateServiceStatus() {
                     const newRecords = currentCount - lastProcessedCount;
                     addLog(`新处理了 ${newRecords} 条数据，总计: ${currentCount} 条`);
                     lastProcessedCount = currentCount;
+
+                    // 获取最新的报告链接
+                    await fetchReportLinks();
                 }
             }
             
@@ -378,6 +381,34 @@ function addReportLink(number, url) {
     }
 }
 
+// 获取报告链接
+async function fetchReportLinks() {
+    console.log('开始获取报告链接...');  // 添加日志
+    try {
+        const response = await fetch('/automation/report-links');
+        console.log('API响应状态:', response.status);  // 添加日志
+        if (response.ok) {
+            const links = await response.json();
+            console.log('获取到的报告链接:', links);  // 添加日志
+            const linksContainer = document.getElementById('report-links-container');
+            if (linksContainer && links.length > 0) {
+                console.log('开始更新UI显示...');  // 添加日志
+                linksContainer.innerHTML = ''; // 清空现有链接
+                links.forEach(link => {
+                    addReportLink(link.number, link.url);
+                });
+                console.log('UI更新完成');  // 添加日志
+            } else {
+                console.log('没有找到链接容器或链接为空');  // 添加日志
+            }
+        } else {
+            console.error('获取报告链接失败:', response.statusText);
+        }
+    } catch (error) {
+        console.error('获取报告链接出错:', error);
+    }
+}
+
 // 恢复会话数据
 function restoreSessionData() {
     // 恢复日志
@@ -481,11 +512,12 @@ async function startService() {
         const result = await startResponse.json();
         if (Array.isArray(result)) {
             result.forEach(log => {
-                const [number, url] = log;
-                addLog(`处理报告: ${number}`);
-                addReportLink(number, url);
+                addLog(log);
             });
         }
+
+        // 获取报告链接
+        await fetchReportLinks();
 
         showToast('成功', '服务已启动', 'success');
     } catch (error) {
