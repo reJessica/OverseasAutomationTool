@@ -2,9 +2,12 @@ package org.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
-public class Application {
+public class Application implements WebMvcConfigurer {
     public static void main(String[] args) {
         System.out.println("Start Springboot ...");
         String driverPath = System.getenv("CHROME_DRIVER_PATH");
@@ -15,5 +18,11 @@ public class Application {
 //                driverPath
 //        );
         SpringApplication.run(Application.class, args);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/");
     }
 }

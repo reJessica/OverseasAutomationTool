@@ -338,3 +338,81 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* 数据表列表区域美化 */
+#tableList {
+    background: #f7fafd;
+    padding: 24px 12px 24px 12px;
+    border-radius: 12px;
+    min-width: 180px;
+    margin-top: 24px;
+    box-shadow: 0 2px 8px rgba(41,98,255,0.04);
+}
+#tableList .nav-item {
+    margin-bottom: 10px;
+}
+#tableList .nav-link {
+    display: flex;
+    align-items: center;
+    font-size: 1.13rem;
+    line-height: 2.2;
+    color: #1a237e !important;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.3rem 1.2rem 0.3rem 1.2rem;
+    position: relative;
+    transition: background 0.2s, color 0.2s;
+}
+#tableList .nav-link i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+#tableList .nav-link.active {
+    background: #1976d2 !important;
+    color: #fff !important;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+    position: relative;
+}
+#tableList .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 5px;
+    border-radius: 4px;
+    background: #42a5f5;
+}
+#tableList .nav-link:hover:not(.active) {
+    background: #e3f2fd;
+    color: #1976d2 !important;
+}
+#tableList .nav-link .delete-table-btn {
+    margin-left: auto;
+    color: #e53935;
+    background: transparent;
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+#tableList .nav-link .delete-table-btn:hover {
+    background: #ffebee;
+    color: #b71c1c;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+    padding: 6px 10px;
+    text-transform: uppercase;
+    font-size: 0.92rem;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
