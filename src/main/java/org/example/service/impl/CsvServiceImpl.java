@@ -175,4 +175,13 @@ public class CsvServiceImpl implements CsvService {
         String sql = "SELECT COUNT(*) FROM " + tableName;
         return jdbcTemplate.queryForObject(sql, Long.class);
     }
+
+    @Override
+    public List<Map<String, Object>> getTableStructure(String tableName) {
+        String sql = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE, COLUMN_KEY, COLUMN_COMMENT " +
+                    "FROM information_schema.COLUMNS " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? " +
+                    "ORDER BY ORDINAL_POSITION";
+        return jdbcTemplate.queryForList(sql, tableName);
+    }
 } 
