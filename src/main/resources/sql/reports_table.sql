@@ -5,6 +5,9 @@ DROP TABLE IF EXISTS overseas_reports;
 -- 2. 创建新表，字段顺序、命名、注释与模板一致
 CREATE TABLE overseas_reports (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    report_number VARCHAR(50) NOT NULL COMMENT '报告编号',
+    report_path VARCHAR(255) COMMENT '报告文件路径',
+    status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '报告状态',
     report_no VARCHAR(50) NOT NULL COMMENT '报告编码',
     report_no_en VARCHAR(50) COMMENT 'Report No.',
     report_date DATE COMMENT '报告日期',
@@ -115,10 +118,10 @@ CREATE TABLE overseas_reports (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. 添加索引
-ALTER TABLE overseas_reports ADD INDEX idx_report_number (report_no);
+ALTER TABLE overseas_reports ADD INDEX idx_report_number (report_number);
 ALTER TABLE overseas_reports ADD INDEX idx_product_name (product_name);
 ALTER TABLE overseas_reports ADD INDEX idx_registration_number (registration_no);
-ALTER TABLE overseas_reports ADD INDEX idx_status (has_control_measure);
+ALTER TABLE overseas_reports ADD INDEX idx_status (status);
 
 -- 4. 添加注释
 ALTER TABLE overseas_reports COMMENT '海外报告记录表';

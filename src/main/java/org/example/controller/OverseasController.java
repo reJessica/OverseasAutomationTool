@@ -57,8 +57,6 @@ public class OverseasController {
             }
             
             existingReport.setReportDate(updatedReport.getReportDate());
-            existingReport.setStatus(updatedReport.getStatus());
-            existingReport.setReportContent(updatedReport.getReportContent());
             
             reportService.updateReport(id, existingReport);
             return "success";

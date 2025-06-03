@@ -110,22 +110,6 @@ public class AutomationController {
         }
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> getStatus() {
-        try {
-            logger.info("正在获取服务状态");
-            Map<String, Object> status = new HashMap<>();
-            status.put("isRunning", smartSolveAutomationService.isRunning());
-            status.put("processedCount", smartSolveAutomationService.getProcessedCount());
-            status.put("lastUpdateTime", smartSolveAutomationService.getLastUpdateTime());
-            logger.info("服务状态获取成功");
-            return ResponseEntity.ok(status);
-        } catch (Exception e) {
-            logger.error("获取服务状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-
     @GetMapping("/report-links")
     public ResponseEntity<List<Map<String, String>>> getReportLinks() {
         try {

@@ -43,7 +43,6 @@ public class OverseasReportService {
         OverseasReport existingReport = reportMapper.findById(id);
         if (existingReport != null) {
             existingReport.setReportDate(updatedReport.getReportDate());
-            existingReport.setStatus(updatedReport.getStatus());
             reportMapper.update(existingReport);
         }
     }
