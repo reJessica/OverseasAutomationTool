@@ -132,12 +132,12 @@ $(document).ready(function() {
                 order: [[0, 'desc']],
                 pageLength: 10,
                 responsive: true,
-                dom: 'Bfrtip',
+                dom: 'frtip',
                 buttons: [
                     {
                         extend: 'excel',
                         text: '<i class="bi bi-file-earmark-excel"></i> Excel',
-                        className: 'btn btn-success btn-sm',
+                        className: 'btn btn-success btn-sm d-none', // 隐藏
                         exportOptions: {
                             columns: ':not(:last-child)'
                         }
@@ -145,7 +145,7 @@ $(document).ready(function() {
                     {
                         extend: 'pdf',
                         text: '<i class="bi bi-file-earmark-pdf"></i> PDF',
-                        className: 'btn btn-danger btn-sm',
+                        className: 'btn btn-danger btn-sm d-none', // 隐藏
                         exportOptions: {
                             columns: ':not(:last-child)'
                         }
@@ -153,7 +153,7 @@ $(document).ready(function() {
                     {
                         extend: 'print',
                         text: '<i class="bi bi-printer"></i> 打印',
-                        className: 'btn btn-info btn-sm',
+                        className: 'btn btn-info btn-sm d-none', // 隐藏
                         exportOptions: {
                             columns: ':not(:last-child)'
                         }

@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 启动状态更新定时器
     startStatusUpdateInterval();
+
+    // 为按钮#create-detail-btn添加点击事件，跳转到overseas-table.html页面
+    document.getElementById('create-detail-btn').addEventListener('click', function() {
+        window.location.href = 'overseas-table.html';
+    });
 });
 
 // 更新服务状态的函数

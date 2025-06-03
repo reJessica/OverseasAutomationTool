@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报告详情 - 自动化服务平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        .report-preview {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        .modal-xl {
+            max-width: 90%;
+        }
+        .card + .card { margin-top: 18px; }
+        .form-label { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
+        .form-row-pair { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
+        .form-row-pair > div { flex: 1; }
+        .section-title { font-size: 1.08rem; font-weight: bold; margin-bottom: 10px; }
+        body, input, select, textarea, button { font-size: 14px !important; }
+        .card-body { padding: 16px 18px; }
+        .card-header { padding: 8px 18px; }
+        input.form-control, select.form-control, textarea.form-control {
+            padding: 3px 8px;
+            min-height: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+        textarea.form-control {
+            min-height: 100px;
+            height: 100px;
+            resize: vertical;
+        }
+        .btn { font-size: 14px; padding: 6px 24px; }
+        .top-id-box { background: #f8f9fa; border-radius: 8px; padding: 20px 24px; margin-bottom: 32px; border: 1px solid #e3e3e3; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html">
+                    <i class="bi bi-gear-fill me-2"></i>自动化服务平台
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">
+                                <i class="bi bi-house-door"></i> 首页
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="overseas.html">
+                                <i class="bi bi-globe"></i> Overseas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="overseas-table.html">
+                                <i class="bi bi-list-ul"></i> 报告列表
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                                <i class="bi bi-info-circle"></i> 报告详情
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主要内容 -->
+    <div class="container mt-4 mb-5">
+        <h2 class="mb-4">报告详情</h2>
+        <!-- 顶部报告编号 -->
+        <div class="top-id-box">
+            <div class="form-row-pair">
+                <div>
+                    <label class="form-label">报告编号</label>
+                    <input type="text" class="form-control" name="report_no" readonly>
+                </div>
+                <div>
+                    <label class="form-label">Report Number</label>
+                    <input type="text" class="form-control" name="report_no_en" readonly>
+                </div>
+            </div>
+        </div>
+        <form id="reportForm">
+            <!-- 报告基本情况 -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white section-title">报告基本情况</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">报告日期</label>
+                            <input type="date" class="form-control" name="report_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Report Date</label>
+                            <input type="date" class="form-control" name="report_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">报告人</label>
+                            <select class="form-control" name="reporter">
+                                <option value="">请选择</option>
+                                <option value="周辉">周辉</option>
+                                <option value="卢梦佳">卢梦佳</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Reporter</label>
+                            <select class="form-control" name="reporter_en">
+                                <option value="">Please select</option>
+                                <option value="新增">New</option>
+                                <option value="周辉">Zhou Hui</option>
+                                <option value="卢梦佳">Lu Mengjia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">单位名称</label>
+                            <input type="text" class="form-control" name="customer_name">
+                        </div>
+                        <div>
+                            <label class="form-label">Customer name</label>
+                            <input type="text" class="form-control" name="customer_name_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">联系地址</label>
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                        <div>
+                            <label class="form-label">Address</label>
+                            <input type="text" class="form-control" name="address_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">联系人</label>
+                            <input type="text" class="form-control" name="contact_person">
+                        </div>
+                        <div>
+                            <label class="form-label">Contact Person</label>
+                            <input type="text" class="form-control" name="contact_person_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">联系电话</label>
+                            <input type="text" class="form-control" name="tel">
+                        </div>
+                        <div>
+                            <label class="form-label">Telphone No.</label>
+                            <input type="text" class="form-control" name="tel_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">发生地</label>
+                            <input type="text" class="form-control" name="occurrence_place">
+                        </div>
+                        <div>
+                            <label class="form-label">Occurrence place</label>
+                            <input type="text" class="form-control" name="occurrence_place_en">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 医疗器械情况 -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white section-title">医疗器械情况</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">产品名称</label>
+                            <input type="text" class="form-control" name="product_name">
+                        </div>
+                        <div>
+                            <label class="form-label">Product Name</label>
+                            <input type="text" class="form-control" name="product_name_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">注册证编号</label>
+                            <input type="text" class="form-control" name="registration_no">
+                        </div>
+                        <div>
+                            <label class="form-label">Registration no.</label>
+                            <input type="text" class="form-control" name="registration_no_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">型号</label>
+                            <input type="text" class="form-control" name="module">
+                        </div>
+                        <div>
+                            <label class="form-label">Module</label>
+                            <input type="text" class="form-control" name="module_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">规格</label>
+                            <input type="text" class="form-control" name="package">
+                        </div>
+                        <div>
+                            <label class="form-label">Package</label>
+                            <input type="text" class="form-control" name="package_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">产地</label>
+                            <input type="text" class="form-control" name="origin_country">
+                        </div>
+                        <div>
+                            <label class="form-label">Origin of Country</label>
+                            <input type="text" class="form-control" name="origin_country_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">管理类别</label>
+                            <input type="text" class="form-control" name="class_type">
+                        </div>
+                        <div>
+                            <label class="form-label">Class Type</label>
+                            <input type="text" class="form-control" name="class_type_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">产品类别</label>
+                            <input type="text" class="form-control" name="product_type">
+                        </div>
+                        <div>
+                            <label class="form-label">Product type</label>
+                            <input type="text" class="form-control" name="product_type_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">产品批号</label>
+                            <input type="text" class="form-control" name="product_lot">
+                        </div>
+                        <div>
+                            <label class="form-label">Product Lot</label>
+                            <input type="text" class="form-control" name="product_lot_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">产品编号</label>
+                            <input type="text" class="form-control" name="product_no">
+                        </div>
+                        <div>
+                            <label class="form-label">Product No.</label>
+                            <input type="text" class="form-control" name="product_no_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">UDI</label>
+                            <input type="text" class="form-control" name="udi">
+                        </div>
+                        <div>
+                            <label class="form-label">UDI</label>
+                            <input type="text" class="form-control" name="udi_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">生产日期</label>
+                            <input type="date" class="form-control" name="manufacturing_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Manufacturing Date</label>
+                            <input type="date" class="form-control" name="manufacturing_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">有效期至</label>
+                            <input type="date" class="form-control" name="expiration_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Expiration Date</label>
+                            <input type="date" class="form-control" name="expiration_date_en">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 不良事件情况 -->
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white section-title">不良事件情况</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">事件发生日期</label>
+                            <input type="date" class="form-control" name="event_occurrence_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Event Occurrence Date</label>
+                            <input type="date" class="form-control" name="event_occurrence_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">发现或获知日期</label>
+                            <input type="date" class="form-control" name="knowledge_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Knowledge Date</label>
+                            <input type="date" class="form-control" name="knowledge_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">伤害程度</label>
+                            <input type="text" class="form-control" name="injury_type">
+                        </div>
+                        <div>
+                            <label class="form-label">Injury Type</label>
+                            <input type="text" class="form-control" name="injury_type_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">伤害表现</label>
+                            <input type="text" class="form-control" name="injury">
+                        </div>
+                        <div>
+                            <label class="form-label">Injury</label>
+                            <input type="text" class="form-control" name="injury_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">器械故障表现</label>
+                            <textarea class="form-control" name="device_malfunction_desc" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Device Malfunction Description</label>
+                            <textarea class="form-control" name="device_malfunction_desc_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">姓名</label>
+                            <input type="text" class="form-control" name="patient_name">
+                        </div>
+                        <div>
+                            <label class="form-label">Patient Name</label>
+                            <input type="text" class="form-control" name="patient_name_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">出生日期</label>
+                            <input type="date" class="form-control" name="birth_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" name="birth_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">年龄</label>
+                            <input type="text" class="form-control" name="age">
+                        </div>
+                        <div>
+                            <label class="form-label">Age</label>
+                            <input type="text" class="form-control" name="age_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">性别</label>
+                            <input type="text" class="form-control" name="gender">
+                        </div>
+                        <div>
+                            <label class="form-label">Gender</label>
+                            <input type="text" class="form-control" name="gender_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">病历号</label>
+                            <input type="text" class="form-control" name="medical_record_no">
+                        </div>
+                        <div>
+                            <label class="form-label">Medical Record No.</label>
+                            <input type="text" class="form-control" name="medical_record_no_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">既往病史</label>
+                            <textarea class="form-control" name="medical_history" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Medical History</label>
+                            <textarea class="form-control" name="medical_history_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 使用情况 -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white section-title">使用情况</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">预期治疗疾病或作用</label>
+                            <textarea class="form-control" name="disease_intended" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Disease intended to treat or effect</label>
+                            <textarea class="form-control" name="disease_intended_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">器械使用日期</label>
+                            <input type="date" class="form-control" name="usage_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Usage Date</label>
+                            <input type="date" class="form-control" name="usage_date_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">使用场所</label>
+                            <input type="text" class="form-control" name="usage_site">
+                        </div>
+                        <div>
+                            <label class="form-label">Usage site</label>
+                            <input type="text" class="form-control" name="usage_site_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">场所名称</label>
+                            <input type="text" class="form-control" name="institution_name">
+                        </div>
+                        <div>
+                            <label class="form-label">Institution Name</label>
+                            <input type="text" class="form-control" name="institution_name_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">使用过程</label>
+                            <textarea class="form-control" name="usage_process" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Usage Process</label>
+                            <textarea class="form-control" name="usage_process_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">合并用药/械情况说明</label>
+                            <textarea class="form-control" name="drug_device_comb_desc" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Drug/device Combination Description</label>
+                            <textarea class="form-control" name="drug_device_comb_desc_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 事件调查 -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark section-title">事件调查</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">是否开展了调查</label>
+                            <input type="text" class="form-control" name="investigation_flag">
+                        </div>
+                        <div>
+                            <label class="form-label">If carry out investigation</label>
+                            <input type="text" class="form-control" name="investigation_flag_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">调查情况</label>
+                            <textarea class="form-control" name="investigation_desc" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Investigation description</label>
+                            <textarea class="form-control" name="investigation_desc_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 评价结果 -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white section-title">评价结果</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">关联性评价</label>
+                            <input type="text" class="form-control" name="relative_evaluation">
+                        </div>
+                        <div>
+                            <label class="form-label">Relative Evaluation</label>
+                            <input type="text" class="form-control" name="relative_evaluation_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">事件原因分析</label>
+                            <textarea class="form-control" name="event_reason_analysis" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Event Reason Analysis</label>
+                            <textarea class="form-control" name="event_reason_analysis_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">是否需要开展产品风险评价</label>
+                            <input type="text" class="form-control" name="need_risk_assessment">
+                        </div>
+                        <div>
+                            <label class="form-label">If need initiate Product Risk Assessment</label>
+                            <input type="text" class="form-control" name="need_risk_assessment_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">计划提交时间</label>
+                            <input type="date" class="form-control" name="plan_submit_date">
+                        </div>
+                        <div>
+                            <label class="form-label">Plan submission Date</label>
+                            <input type="date" class="form-control" name="plan_submit_date_en">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 控制措施 -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white section-title">控制措施</div>
+                <div class="card-body">
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">是否已采取控制措施</label>
+                            <input type="text" class="form-control" name="has_control_measure">
+                        </div>
+                        <div>
+                            <label class="form-label">If has taken control measure</label>
+                            <input type="text" class="form-control" name="has_control_measure_en">
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">具体控制措施</label>
+                            <textarea class="form-control" name="control_measure_details" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Control measure details</label>
+                            <textarea class="form-control" name="control_measure_details_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row-pair">
+                        <div>
+                            <label class="form-label">未采取控制措施原因</label>
+                            <textarea class="form-control" name="no_control_measure_reason" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">No control measure reason</label>
+                            <textarea class="form-control" name="no_control_measure_reason_en" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <button type="submit" class="btn btn-primary px-5">保存</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 报告预览模态框 -->
+    <div class="modal fade" id="reportPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportPreviewTitle">报告预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="reportPreviewFrame" class="report-preview"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示框 -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto">提示</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 查看报告
+            const reportPreviewModal = new bootstrap.Modal(document.getElementById('reportPreviewModal'));
+            const reportPreviewFrame = document.getElementById('reportPreviewFrame');
+
+            document.querySelectorAll('.view-report').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reportPath = this.dataset.path;
+                    reportPreviewFrame.src = `/overseas/report/preview?path=${encodeURIComponent(reportPath)}`;
+                    reportPreviewModal.show();
+                });
+            });
+        });
+
+        // 保存修改
+        function saveChanges() {
+            const reportId = document.getElementById('reportId').value;
+            const reportDate = document.getElementById('reportDate').value;
+            const status = document.getElementById('status').value;
+            const reportContent = document.getElementById('reportContent').value;
+
+            fetch(`/overseas/report/update/${reportId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reportDate: reportDate,
+                    status: status,
+                    reportContent: reportContent
+                })
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result === 'success') {
+                    showToast('修改已保存');
+                } else {
+                    showToast('保存失败：' + result);
+                }
+            })
+            .catch(error => {
+                showToast('保存时发生错误：' + error);
+            });
+        }
+
+        // 下载报告
+        function downloadReport(path) {
+            window.location.href = `/overseas/report/download?path=${encodeURIComponent(path)}`;
+        }
+
+        // Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastBody = toast.querySelector('.toast-body');
+            toastBody.textContent = message;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    </script>
+</body>
+</html> 

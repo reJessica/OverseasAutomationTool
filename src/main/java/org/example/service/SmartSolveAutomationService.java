@@ -6,6 +6,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.config.AppConfig;
+import org.example.entity.OverseasReport;
+import org.example.mapper.OverseasReportMapper;
 import org.example.util.TranslationUtil;
 import org.example.util.TranslationUtil2;
 import org.example.util.TranslationUtil3;
@@ -53,6 +55,9 @@ public class SmartSolveAutomationService {
     private ApplicationContext applicationContext;
 
     private List<Map<String, String>> reportLinks = new ArrayList<>();
+
+    @Autowired
+    private OverseasReportMapper overseasReportMapper;
 
     public void automateAndDownloadFile() {
         if (isRunning) {
@@ -1017,6 +1022,121 @@ public class SmartSolveAutomationService {
         System.out.print("现在list的长度应该是1 ");
         System.out.println(windowHandlesList.size());
         System.out.println(webDriver.getWindowHandle());
+
+        // 在提取完所有字段后，创建OverseasReport对象并保存到数据库
+        OverseasReport report = new OverseasReport();
+        
+        // 设置基本信息
+        report.setReportNo(cellText_record_number);
+        report.setReportNoEn(cellText_record_number);
+        report.setReportDate(LocalDate.now());  // 当前日期作为报告日期
+        report.setReportDateEn(LocalDate.now());
+        report.setReporter("周辉");  // 默认报告人
+        report.setReporterEn("Zhou Hui");
+        
+        // 设置医疗器械情况
+        report.setProductName(currentRow.get(1));
+        report.setProductNameEn(currentRowEnglish.get(1));
+        report.setRegistrationNo(currentRow.get(2));
+        report.setRegistrationNoEn(currentRowEnglish.get(2));
+        report.setModule("");  // 型号
+        report.setModuleEn("");
+        report.setPackage_("");  // 规格
+        report.setPackageEn("");
+        report.setOriginCountry(currentRow.get(3));
+        report.setOriginCountryEn(currentRowEnglish.get(3));
+        report.setClassType(currentRow.get(4));
+        report.setClassTypeEn(currentRowEnglish.get(4));
+        report.setProductType(currentRow.get(5));
+        report.setProductTypeEn(currentRowEnglish.get(5));
+        report.setProductLot(currentRow.get(6));
+        report.setProductLotEn(currentRowEnglish.get(6));
+        report.setProductNo(currentRow.get(7));
+        report.setProductNoEn(currentRowEnglish.get(7));
+        report.setUdi("");  // UDI
+        report.setUdiEn("");
+        report.setManufacturingDate(null);  // 生产日期
+        report.setManufacturingDateEn(null);
+        if (!currentRow.get(9).isEmpty()) {
+            report.setExpirationDate(LocalDate.parse(currentRow.get(9)));
+            report.setExpirationDateEn(LocalDate.parse(currentRowEnglish.get(9)));
+        }
+        
+        // 设置不良事件情况
+        if (!currentRow.get(10).isEmpty()) {
+            report.setEventOccurrenceDate(LocalDate.parse(currentRow.get(10)));
+            report.setEventOccurrenceDateEn(LocalDate.parse(currentRowEnglish.get(10)));
+        }
+        report.setKnowledgeDate(null);  // 发现或获知日期
+        report.setKnowledgeDateEn(null);
+        report.setInjuryType(currentRow.get(12));
+        report.setInjuryTypeEn(currentRowEnglish.get(12));
+        report.setInjury(currentRow.get(13));
+        report.setInjuryEn(currentRowEnglish.get(13));
+        report.setDeviceMalfunctionDesc(currentRow.get(21));
+        report.setDeviceMalfunctionDescEn(currentRowEnglish.get(21));
+        report.setPatientName(currentRow.get(14));
+        report.setPatientNameEn(currentRowEnglish.get(14));
+        if (!currentRow.get(15).isEmpty()) {
+            report.setBirthDate(LocalDate.parse(currentRow.get(15)));
+            report.setBirthDateEn(LocalDate.parse(currentRowEnglish.get(15)));
+        }
+        report.setAge(currentRow.get(17));  // 年龄数字
+        report.setAgeEn(currentRowEnglish.get(17));
+        report.setGender(currentRow.get(18));
+        report.setGenderEn(currentRowEnglish.get(18));
+        report.setMedicalRecordNo(currentRow.get(19));
+        report.setMedicalRecordNoEn(currentRowEnglish.get(19));
+        report.setMedicalHistory(currentRow.get(20));
+        report.setMedicalHistoryEn(currentRowEnglish.get(20));
+        
+        // 设置使用情况
+        report.setDiseaseIntended(currentRow.get(22));
+        report.setDiseaseIntendedEn(currentRowEnglish.get(22));
+        if (!currentRow.get(23).isEmpty()) {
+            report.setUsageDate(LocalDate.parse(currentRow.get(23)));
+            report.setUsageDateEn(LocalDate.parse(currentRowEnglish.get(23)));
+        }
+        report.setUsageSite(currentRow.get(24));
+        report.setUsageSiteEn(currentRowEnglish.get(24));
+        report.setInstitutionName(currentRow.get(25));
+        report.setInstitutionNameEn(currentRowEnglish.get(25));
+        report.setUsageProcess(currentRow.get(26));
+        report.setUsageProcessEn(currentRowEnglish.get(26));
+        report.setDrugDeviceCombDesc(currentRow.get(27));
+        report.setDrugDeviceCombDescEn(currentRowEnglish.get(27));
+        
+        // 设置事件调查
+        report.setInvestigationFlag(currentRow.get(28));
+        report.setInvestigationFlagEn(currentRowEnglish.get(28));
+        report.setInvestigationDesc(currentRow.get(29));
+        report.setInvestigationDescEn(currentRowEnglish.get(29));
+        
+        // 设置评价结果
+        report.setRelativeEvaluation(currentRow.get(30));
+        report.setRelativeEvaluationEn(currentRowEnglish.get(30));
+        report.setEventReasonAnalysis(currentRow.get(31));
+        report.setEventReasonAnalysisEn(currentRowEnglish.get(31));
+        report.setNeedRiskAssessment(currentRow.get(32));
+        report.setNeedRiskAssessmentEn(currentRowEnglish.get(32));
+        report.setPlanSubmitDate(null);  // 计划提交时间
+        report.setPlanSubmitDateEn(null);
+        
+        // 设置控制措施
+        report.setHasControlMeasure(currentRow.get(33));
+        report.setHasControlMeasureEn(currentRowEnglish.get(33));
+        report.setControlMeasureDetails(currentRow.get(34));
+        report.setControlMeasureDetailsEn(currentRowEnglish.get(34));
+        report.setNoControlMeasureReason(currentRow.get(35));
+        report.setNoControlMeasureReasonEn(currentRowEnglish.get(35));
+        
+        // 保存到数据库
+        try {
+            overseasReportMapper.insert(report);
+            System.out.println("成功保存报告到数据库: " + cellText_record_number);
+        } catch (Exception e) {
+            System.err.println("保存报告到数据库失败: " + e.getMessage());
+        }
     }
 
     public void backUpOutputs(){
