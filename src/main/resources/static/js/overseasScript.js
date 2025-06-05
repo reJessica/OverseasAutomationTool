@@ -86,68 +86,57 @@ document.addEventListener('DOMContentLoaded', function() {
 // 更新服务状态的函数
 async function updateServiceStatus() {
     try {
-        const response = await fetch('/automation/status');
-        if (response.ok) {
-            const status = await response.json();
+        const response = await fetch('/overseas/automation/status');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const status = await response.json();
+        
+        // 更新状态显示
+        const serviceStatus = document.getElementById('service-status');
+        if (serviceStatus) {
+            serviceStatus.textContent = status.isRunning ? '运行中' : '未运行';
+            serviceStatus.className = status.isRunning ? 'status-value text-success' : 'status-value text-secondary';
+        }
+        
+        // 更新数据处理量并添加日志
+        const dataCount = document.getElementById('data-count');
+        if (dataCount) {
+            const currentCount = status.processedCount || 0;
+            dataCount.textContent = currentCount;
             
-            // 更新状态显示
-            const serviceStatus = document.getElementById('service-status');
-            if (serviceStatus) {
-                serviceStatus.textContent = status.isRunning ? '运行中' : '未运行';
-                serviceStatus.className = status.isRunning ? 'status-value text-success' : 'status-value text-secondary';
+            // 如果数据量发生变化，添加日志
+            if (currentCount > lastProcessedCount) {
+                const newRecords = currentCount - lastProcessedCount;
+                addLog(`新处理了 ${newRecords} 条数据，总计: ${currentCount} 条`);
+                lastProcessedCount = currentCount;
+            }
+        }
+        
+        // 更新最近更新时间
+        if (status.lastUpdateTime) {
+            const lastUpdate = new Date(status.lastUpdateTime);
+            const now = new Date();
+            const timeDiff = Math.floor((now - lastUpdate) / 1000); // 秒数
+            
+            let timeString;
+            if (timeDiff < 60) {
+                timeString = `${timeDiff}秒前`;
+            } else if (timeDiff < 3600) {
+                timeString = `${Math.floor(timeDiff / 60)}分钟前`;
+            } else {
+                timeString = lastUpdate.toLocaleString();
             }
             
-            // 更新数据处理量并添加日志
-            const dataCount = document.getElementById('data-count');
-            if (dataCount) {
-                const currentCount = status.processedCount || 0;
-                dataCount.textContent = currentCount;
-                
-                // 如果数据量发生变化，添加日志
-                if (currentCount > lastProcessedCount) {
-                    const newRecords = currentCount - lastProcessedCount;
-                    addLog(`新处理了 ${newRecords} 条数据，总计: ${currentCount} 条`);
-                    lastProcessedCount = currentCount;
+            document.getElementById('last-update').textContent = timeString;
+        }
 
-                    // 获取最新的报告链接
-                    await fetchReportLinks();
-                }
-            }
-            
-            // 更新最近更新时间
-            if (status.lastUpdateTime) {
-                const lastUpdate = new Date(status.lastUpdateTime);
-                const now = new Date();
-                const timeDiff = Math.floor((now - lastUpdate) / 1000); // 秒数
-                
-                let timeString;
-                if (timeDiff < 60) {
-                    timeString = `${timeDiff}秒前`;
-                } else if (timeDiff < 3600) {
-                    timeString = `${Math.floor(timeDiff / 60)}分钟前`;
-                } else {
-                    timeString = lastUpdate.toLocaleString();
-                }
-                
-                document.getElementById('last-update').textContent = timeString;
-            }
-
-            // 更新按钮状态
-            const startButton = document.getElementById('start-button');
-            const stopButton = document.getElementById('stop-button');
-            if (startButton && stopButton) {
-                // 根据当前状态设置按钮
-                startButton.disabled = status.isRunning;
-                stopButton.disabled = !status.isRunning;
-            }
-
-            // 保存状态到localStorage
-            localStorage.setItem('serviceStatus', status.isRunning ? 'running' : 'stopped');
-            localStorage.setItem('lastProcessedCount', status.processedCount || '0');
-            localStorage.setItem('lastUpdateTime', status.lastUpdateTime || '');
-        } else {
-            console.error('获取状态失败:', response.statusText);
-            addLog('获取服务状态失败');
+        // 更新按钮状态
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        if (startButton && stopButton) {
+            startButton.disabled = status.isRunning;
+            stopButton.disabled = !status.isRunning;
         }
     } catch (error) {
         console.error('更新状态出错:', error);
@@ -159,7 +148,7 @@ async function updateServiceStatus() {
 function startStatusUpdateInterval() {
     if (!statusUpdateInterval) {
         updateServiceStatus(); // 立即更新一次
-        statusUpdateInterval = setInterval(updateServiceStatus, 5000); // 每5秒更新一次
+        statusUpdateInterval = setInterval(updateServiceStatus, 30000); // 每30秒更新一次
     }
 }
 
@@ -396,7 +385,7 @@ function addReportLink(number, url) {
 async function fetchReportLinks() {
     console.log('开始获取报告链接...');  // 添加日志
     try {
-        const response = await fetch('/automation/report-links');
+        const response = await fetch('/overseas/automation/report-links');
         console.log('API响应状态:', response.status);  // 添加日志
         if (response.ok) {
             const links = await response.json();
@@ -492,7 +481,7 @@ async function startService() {
 
         // 首先发送配置
         addLog('正在更新配置...');
-        const configResponse = await fetch('/automation/config', {
+        const configResponse = await fetch('/overseas/automation/config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -508,7 +497,7 @@ async function startService() {
         addLog('配置更新成功，正在启动服务...');
 
         // 调用后端接口启动服务
-        const startResponse = await fetch('/automation/start');
+        const startResponse = await fetch('/overseas/automation/start');
         if (!startResponse.ok) {
             const errorText = await startResponse.text();
             throw new Error(`服务启动失败: ${errorText}`);
@@ -542,7 +531,7 @@ async function startService() {
 
 async function stopService() {
     try {
-        const response = await fetch('/automation/stop');
+        const response = await fetch('/overseas/automation/stop');
         if (!response.ok) {
             throw new Error(`停止服务失败: ${response.statusText}`);
         }
@@ -573,7 +562,7 @@ async function restoreServiceStatus() {
     if (savedStatus === 'running') {
         // 如果之前服务是运行状态，检查当前实际状态
         try {
-            const response = await fetch('/automation/status');
+            const response = await fetch('/overseas/automation/status');
             if (response.ok) {
                 const status = await response.json();
                 if (status.isRunning) {

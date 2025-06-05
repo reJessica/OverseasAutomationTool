@@ -20,6 +20,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.time.Duration;
@@ -33,6 +35,7 @@ import static org.example.util.FileReaderUtil.readExcelFile;
 
 @Service
 public class SmartSolveAutomationService {
+    private static final Logger logger = LoggerFactory.getLogger(SmartSolveAutomationService.class);
     @Autowired
     private WebDriver webDriver;
     @Autowired
@@ -50,6 +53,7 @@ public class SmartSolveAutomationService {
     private volatile boolean isRunning = false;
     private volatile boolean isStopped = false;  // 添加新的标志位
     private Instant lastUpdateTime = null;
+    private int processedCount = 0;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -1373,11 +1377,11 @@ public class SmartSolveAutomationService {
     }
 
     public int getProcessedCount() {
-        return count;
+        return processedCount;
     }
 
-    public Instant getLastUpdateTime() {
-        return lastUpdateTime;
+    public String getLastUpdateTime() {
+        return lastUpdateTime != null ? lastUpdateTime.toString() : null;
     }
 
     public void addReportLink(String number, String url) {

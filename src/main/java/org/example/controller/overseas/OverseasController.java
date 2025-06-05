@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.controller.overseas;
 
 import org.example.entity.OverseasReport;
 import org.example.service.OverseasReportService;
