@@ -37,7 +37,7 @@ public class OverseasReport {
     private String module;
     private String moduleEn;
     private String productPackage;
-    private String packageEn;
+    private String productPackageEn;
     private String originCountry;
     private String originCountryEn;
     private String classType;

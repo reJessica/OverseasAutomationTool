@@ -98,8 +98,8 @@ CREATE TABLE overseas_reports (
     investigation_desc_en TEXT COMMENT 'Investigation description',
 
     -- 评价结果
-    relative_evaluation VARCHAR(255) COMMENT '关联性评价',
-    relative_evaluation_en VARCHAR(255) COMMENT 'Relative Evaluation',
+    relative_evaluation TEXT COMMENT '关联性评价',
+    relative_evaluation_en TEXT COMMENT 'Relative Evaluation',
     event_reason_analysis TEXT COMMENT '事件原因分析',
     event_reason_analysis_en TEXT COMMENT 'Event Reason Analysis',
     need_risk_assessment VARCHAR(10) COMMENT '是否需要开展产品风险评价',
@@ -113,7 +113,7 @@ CREATE TABLE overseas_reports (
     control_measure_details TEXT COMMENT '具体控制措施',
     control_measure_details_en TEXT COMMENT 'Control measure details',
     no_control_measure_reason TEXT COMMENT '未采取控制措施原因',
-    no_control_measure_reason_en TEXT COMMENT 'No control measure reason',
+    no_control_measure_reason_en TEXT COMMENT 'No control measure reason'
 
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

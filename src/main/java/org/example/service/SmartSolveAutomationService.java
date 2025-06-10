@@ -1063,8 +1063,8 @@ public class SmartSolveAutomationService {
         report.setRegistrationNoEn(currentRowEnglish.get(2));
         report.setModule("");  // 型号
         report.setModuleEn("");
-        report.setPackage_("");  // 规格
-        report.setPackageEn("");
+        report.setProductPackage("");  // 规格
+        report.setProductPackageEn("");
         report.setOriginCountry(currentRow.get(3));
         report.setOriginCountryEn(currentRowEnglish.get(3));
         report.setClassType(currentRow.get(4));

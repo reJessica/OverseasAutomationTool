@@ -39,7 +39,7 @@ public interface OverseasReportMapper {
             "#{address}, #{addressEn}, #{contactPerson}, #{contactPersonEn}, " +
             "#{tel}, #{telEn}, #{occurrencePlace}, #{occurrencePlaceEn}, " +
             "#{productName}, #{productNameEn}, #{registrationNo}, #{registrationNoEn}, " +
-            "#{module}, #{moduleEn}, #{productPackage}, #{packageEn}, #{originCountry}, #{originCountryEn}, " +
+            "#{module}, #{moduleEn}, #{productPackage}, #{productPackageEn}, #{originCountry}, #{originCountryEn}, " +
             "#{classType}, #{classTypeEn}, #{productType}, #{productTypeEn}, " +
             "#{productLot}, #{productLotEn}, #{productNo}, #{productNoEn}, " +
             "#{udi}, #{manufacturingDate}, #{manufacturingDateEn}, #{expirationDate}, #{expirationDateEn}, " +
