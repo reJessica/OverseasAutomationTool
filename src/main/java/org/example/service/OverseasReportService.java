@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -16,11 +17,11 @@ public class OverseasReportService {
     private OverseasReportMapper reportMapper;
 
     @Transactional
-    public void saveReport(String reportPath) {
-        OverseasReport report = new OverseasReport();
-        report.setReportDate(LocalDate.now());
-        report.setReportNumber(generateReportNumber());
-        report.setReportPath(reportPath);
+    public void saveReport(OverseasReport report) {
+        // 设置创建和更新时间
+        LocalDateTime now = LocalDateTime.now();
+        report.setCreatedAt(now);
+        report.setUpdatedAt(now);
         report.setStatus("ACTIVE");
         
         reportMapper.insert(report);
@@ -42,8 +43,10 @@ public class OverseasReportService {
     public void updateReport(Long id, OverseasReport updatedReport) {
         OverseasReport existingReport = reportMapper.findById(id);
         if (existingReport != null) {
-            existingReport.setReportDate(updatedReport.getReportDate());
-            reportMapper.update(existingReport);
+            // 更新所有字段
+            updatedReport.setId(id);
+            updatedReport.setUpdatedAt(LocalDateTime.now());
+            reportMapper.update(updatedReport);
         }
     }
 

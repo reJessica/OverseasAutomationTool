@@ -416,3 +416,45 @@ body {
     letter-spacing: 0.5px;
     line-height: 1.2;
 }
+
+/* 报告列表美化样式 */
+.custom-header {
+    background: #fff;
+    border-bottom: none;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+.custom-title {
+    color: #3b5bdb;
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+}
+.custom-title .bi {
+    font-size: 1.4rem;
+    color: #3b5bdb;
+    margin-right: 0.5rem;
+}
+.custom-underline {
+    width: 40px;
+    height: 3px;
+    background: #3b5bdb;
+    border-radius: 2px;
+    margin-top: 4px;
+}
+.custom-report-btn {
+    background: #ffe066;
+    color: #212529;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.custom-report-btn:hover {
+    background: #ffd43b;
+    color: #212529;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}

@@ -79,7 +79,17 @@
 
     <!-- 主要内容 -->
     <div class="container mt-4 mb-5">
-        <h2 class="mb-4">报告详情</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>报告详情</h2>
+            <div class="btn-group">
+                <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                    <i class="bi bi-file-earmark-excel me-1"></i>导出Excel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="exportToWord()">
+                    <i class="bi bi-file-earmark-word me-1"></i>导出Word
+                </button>
+            </div>
+        </div>
         <!-- 顶部报告编号 -->
         <div class="top-id-box">
             <div class="form-row-pair">
@@ -629,65 +639,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 查看报告
-            const reportPreviewModal = new bootstrap.Modal(document.getElementById('reportPreviewModal'));
-            const reportPreviewFrame = document.getElementById('reportPreviewFrame');
-
-            document.querySelectorAll('.view-report').forEach(button => {
-                button.addEventListener('click', function() {
-                    const reportPath = this.dataset.path;
-                    reportPreviewFrame.src = `/overseas/report/preview?path=${encodeURIComponent(reportPath)}`;
-                    reportPreviewModal.show();
-                });
-            });
-        });
-
-        // 保存修改
-        function saveChanges() {
-            const reportId = document.getElementById('reportId').value;
-            const reportDate = document.getElementById('reportDate').value;
-            const status = document.getElementById('status').value;
-            const reportContent = document.getElementById('reportContent').value;
-
-            fetch(`/overseas/report/update/${reportId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    reportDate: reportDate,
-                    status: status,
-                    reportContent: reportContent
-                })
-            })
-            .then(response => response.text())
-            .then(result => {
-                if (result === 'success') {
-                    showToast('修改已保存');
-                } else {
-                    showToast('保存失败：' + result);
-                }
-            })
-            .catch(error => {
-                showToast('保存时发生错误：' + error);
-            });
-        }
-
-        // 下载报告
-        function downloadReport(path) {
-            window.location.href = `/overseas/report/download?path=${encodeURIComponent(path)}`;
-        }
-
-        // Toast提示
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastBody = toast.querySelector('.toast-body');
-            toastBody.textContent = message;
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+    <script src="../js/overseas-report-detail.js"></script>
 </body>
 </html> 

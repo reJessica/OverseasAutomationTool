@@ -27,6 +27,7 @@ import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -1031,12 +1032,29 @@ public class SmartSolveAutomationService {
         OverseasReport report = new OverseasReport();
         
         // 设置基本信息
+        report.setReportNumber(cellText_record_number);  // 索引编号
+        report.setReportPath(currentURl);  // 报告文件路径
+        report.setStatus("ACTIVE");  // 报告状态
+        report.setCreatedAt(LocalDateTime.now());  // 创建时间
+        report.setUpdatedAt(LocalDateTime.now());  // 更新时间
+        
+        // 设置报告基本信息
         report.setReportNo(cellText_record_number);
         report.setReportNoEn(cellText_record_number);
-        report.setReportDate(LocalDate.now());  // 当前日期作为报告日期
+        report.setReportDate(LocalDate.now());
         report.setReportDateEn(LocalDate.now());
-        report.setReporter("周辉");  // 默认报告人
+        report.setReporter("周辉");
         report.setReporterEn("Zhou Hui");
+        report.setCustomerName("");  // 单位名称
+        report.setCustomerNameEn("");
+        report.setAddress("");  // 联系地址
+        report.setAddressEn("");
+        report.setContactPerson("");  // 联系人
+        report.setContactPersonEn("");
+        report.setTel("");  // 联系电话
+        report.setTelEn("");
+        report.setOccurrencePlace("");  // 发生地
+        report.setOccurrencePlaceEn("");
         
         // 设置医疗器械情况
         report.setProductName(currentRow.get(1));
@@ -1140,6 +1158,7 @@ public class SmartSolveAutomationService {
             System.out.println("成功保存报告到数据库: " + cellText_record_number);
         } catch (Exception e) {
             System.err.println("保存报告到数据库失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
