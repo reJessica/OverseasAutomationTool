@@ -39,7 +39,7 @@ public interface OverseasReportMapper {
             "#{address}, #{addressEn}, #{contactPerson}, #{contactPersonEn}, " +
             "#{tel}, #{telEn}, #{occurrencePlace}, #{occurrencePlaceEn}, " +
             "#{productName}, #{productNameEn}, #{registrationNo}, #{registrationNoEn}, " +
-            "#{module}, #{moduleEn}, #{package}, #{packageEn}, #{originCountry}, #{originCountryEn}, " +
+            "#{module}, #{moduleEn}, #{productPackage}, #{packageEn}, #{originCountry}, #{originCountryEn}, " +
             "#{classType}, #{classTypeEn}, #{productType}, #{productTypeEn}, " +
             "#{productLot}, #{productLotEn}, #{productNo}, #{productNoEn}, " +
             "#{udi}, #{manufacturingDate}, #{manufacturingDateEn}, #{expirationDate}, #{expirationDateEn}, " +
@@ -83,7 +83,7 @@ public interface OverseasReportMapper {
             "product_name = #{productName}, product_name_en = #{productNameEn}, " +
             "registration_no = #{registrationNo}, registration_no_en = #{registrationNoEn}, " +
             "module = #{module}, module_en = #{moduleEn}, " +
-            "package = #{package}, package_en = #{packageEn}, " +
+            "package = #{productPackage}, package_en = #{packageEn}, " +
             "origin_country = #{originCountry}, origin_country_en = #{originCountryEn}, " +
             "class_type = #{classType}, class_type_en = #{classTypeEn}, " +
             "product_type = #{productType}, product_type_en = #{productTypeEn}, " +

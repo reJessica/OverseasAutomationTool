@@ -36,7 +36,7 @@ public class OverseasReport {
     private String registrationNoEn;
     private String module;
     private String moduleEn;
-    private String package_;
+    private String productPackage;
     private String packageEn;
     private String originCountry;
     private String originCountryEn;
