@@ -9,7 +9,6 @@ public class OverseasReport {
     private Long id;
     
     // 基本信息
-    private String reportNumber;
     private String reportPath;
     private String status;
     private String reportNo;

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         .report-preview {
             width: 100%;
@@ -37,6 +39,59 @@
         }
         .btn { font-size: 14px; padding: 6px 24px; }
         .top-id-box { background: #f8f9fa; border-radius: 8px; padding: 20px 24px; margin-bottom: 32px; border: 1px solid #e3e3e3; }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+        }
+        
+        .btn {
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-outline-primary {
+            color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -68,7 +123,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active" href="#">
-                                <i class="bi bi-info-circle"></i> 报告详情
+                                <i class="bi bi-info-circle"></i> 新增报告
                             </a>
                         </li>
                     </ul>
@@ -80,27 +135,28 @@
     <!-- 主要内容 -->
     <div class="container mt-4 mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>报告详情</h2>
-            <div class="btn-group">
-                <button type="button" class="btn btn-success" onclick="exportToExcel()">
-                    <i class="bi bi-file-earmark-excel me-1"></i>导出Excel
-                </button>
-                <button type="button" class="btn btn-primary" onclick="exportToWord()">
-                    <i class="bi bi-file-earmark-word me-1"></i>导出Word
-                </button>
-            </div>
-        </div>
-        <!-- 顶部报告编号 -->
-        <div class="top-id-box">
-            <div class="form-row-pair">
-                <div>
-                    <label class="form-label">报告编号</label>
-                    <input type="text" class="form-control" name="report_no">
+            <h2>新增报告</h2>
+            <div class="d-flex gap-2">
+                <div class="upload-btn-wrapper">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.doc,.docx" class="d-none">
+                    <label for="fileInput" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-up me-2"></i>导入文件
+                    </label>
                 </div>
             </div>
-            <input type="hidden" name="id">
         </div>
         <form id="reportForm">
+            <!-- 顶部报告编号 -->
+            <div class="top-id-box">
+                <div class="form-row-pair">
+                    <div>
+                        <label class="form-label">报告编号</label>
+                        <input type="text" class="form-control" name="report_no" required>
+                    </div>
+                </div>
+                <input type="hidden" name="id">
+            </div>
+            
             <!-- 报告基本情况 -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white section-title">报告基本情况</div>
@@ -128,7 +184,6 @@
                             <label class="form-label">Reporter</label>
                             <select class="form-control" name="reporter_en">
                                 <option value="">Please select</option>
-                                <option value="新增">New</option>
                                 <option value="周辉">Zhou Hui</option>
                                 <option value="卢梦佳">Lu Mengjia</option>
                             </select>
@@ -602,8 +657,14 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-4 text-center">
-                <button type="submit" class="btn btn-primary px-5" id="updateReportBtn">保存</button>
+            <!-- 底部按钮 -->
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <a href="/overseas/table" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-circle me-2"></i>取消
+                </a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-save me-2"></i>保存
+                </button>
             </div>
         </form>
     </div>
@@ -637,8 +698,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
-    <script src="../js/overseas-report-detail.js"></script>
+    <script src="../js/overseas-report-add.js"></script>
 </body>
 </html> 

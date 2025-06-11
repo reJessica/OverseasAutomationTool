@@ -95,13 +95,10 @@
             <div class="form-row-pair">
                 <div>
                     <label class="form-label">报告编号</label>
-                    <input type="text" class="form-control" name="report_no" readonly>
-                </div>
-                <div>
-                    <label class="form-label">Report Number</label>
-                    <input type="text" class="form-control" name="report_no_en" readonly>
+                    <input type="text" class="form-control" name="report_no">
                 </div>
             </div>
+            <input type="hidden" name="id">
         </div>
         <form id="reportForm">
             <!-- 报告基本情况 -->
@@ -606,7 +603,7 @@
                 </div>
             </div>
             <div class="mt-4 text-center">
-                <button type="submit" class="btn btn-primary px-5">保存</button>
+                <button type="submit" class="btn btn-primary px-5" id="updateReportBtn">保存</button>
             </div>
         </form>
     </div>
@@ -639,6 +636,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
     <script src="../js/overseas-report-detail.js"></script>

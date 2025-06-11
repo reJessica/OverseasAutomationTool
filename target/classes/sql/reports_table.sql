@@ -5,11 +5,10 @@ DROP TABLE IF EXISTS overseas_reports;
 -- 2. 创建新表，字段顺序、命名、注释与模板一致
 CREATE TABLE overseas_reports (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    report_number VARCHAR(50) NOT NULL COMMENT '索引编号',
     report_path TEXT COMMENT '报告文件路径',
     status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '报告状态',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'，
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     report_no VARCHAR(50) NOT NULL COMMENT '报告编码',
     report_no_en VARCHAR(50) COMMENT 'Report No.',

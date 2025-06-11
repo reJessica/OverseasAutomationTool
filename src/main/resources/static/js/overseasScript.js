@@ -354,7 +354,7 @@ function loadSavedConfig() {
 }
 
 // 添加报告链接
-function addReportLink(number, url) {
+function addReportLink(id, url) {
     const linksContainer = document.getElementById('report-links-container');
     if (linksContainer) {
         const linkDiv = document.createElement('div');
@@ -363,7 +363,7 @@ function addReportLink(number, url) {
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-file-earmark-text me-2"></i>
-                    <span class="report-number">报告编号: ${number}</span>
+                    <span class="report-number">报告ID: ${id}</span>
                 </div>
                 <div class="d-flex align-items-center">
                     <a href="${url}" target="_blank" class="btn btn-sm btn-primary">
@@ -376,7 +376,7 @@ function addReportLink(number, url) {
 
         // 保存到会话存储
         const links = JSON.parse(sessionStorage.getItem('reportLinks') || '[]');
-        links.push({ number, url });
+        links.push({ id, url });
         sessionStorage.setItem('reportLinks', JSON.stringify(links));
     }
 }
@@ -395,7 +395,7 @@ async function fetchReportLinks() {
                 console.log('开始更新UI显示...');  // 添加日志
                 linksContainer.innerHTML = ''; // 清空现有链接
                 links.forEach(link => {
-                    addReportLink(link.number, link.url);
+                    addReportLink(link.id, link.url);
                 });
                 console.log('UI更新完成');  // 添加日志
             } else {
@@ -442,7 +442,7 @@ function restoreSessionData() {
             linkDiv.className = 'report-link-item mb-2';
             linkDiv.innerHTML = `
                 <div class="d-flex align-items-center">
-                    <span class="me-2">报告编号: ${link.number}</span>
+                    <span class="me-2">报告ID: ${link.id}</span>
                     <a href="${link.url}" target="_blank" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-box-arrow-up-right"></i> 查看报告
                     </a>

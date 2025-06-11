@@ -2,13 +2,14 @@ package org.example.mapper;
 
 import org.apache.ibatis.annotations.*;
 import org.example.entity.OverseasReport;
+
 import java.util.List;
 
 @Mapper
 public interface OverseasReportMapper {
     
     @Insert("INSERT INTO overseas_reports (" +
-            "report_number, report_path, status, created_at, updated_at, " +
+            "report_path, status, created_at, updated_at, " +
             "report_no, report_no_en, report_date, report_date_en, " +
             "reporter, reporter_en, customer_name, customer_name_en, " +
             "address, address_en, contact_person, contact_person_en, " +
@@ -33,7 +34,7 @@ public interface OverseasReportMapper {
             "has_control_measure, has_control_measure_en, control_measure_details, control_measure_details_en, " +
             "no_control_measure_reason, no_control_measure_reason_en" +
             ") VALUES (" +
-            "#{reportNumber}, #{reportPath}, #{status}, #{createdAt}, #{updatedAt}, " +
+            "#{reportPath}, #{status}, #{createdAt}, #{updatedAt}, " +
             "#{reportNo}, #{reportNoEn}, #{reportDate}, #{reportDateEn}, " +
             "#{reporter}, #{reporterEn}, #{customerName}, #{customerNameEn}, " +
             "#{address}, #{addressEn}, #{contactPerson}, #{contactPersonEn}, " +
@@ -64,14 +65,17 @@ public interface OverseasReportMapper {
     @Select("SELECT * FROM overseas_reports WHERE id = #{id}")
     OverseasReport findById(Long id);
 
-    @Select("SELECT * FROM overseas_reports WHERE report_number = #{reportNumber}")
+    @Select("SELECT * FROM overseas_reports WHERE report_no = #{reportNumber}")
     OverseasReport findByReportNumber(String reportNumber);
 
-    @Select("SELECT * FROM overseas_reports")
-    List<OverseasReport> findAll();
+    @Select("SELECT * FROM overseas_reports ORDER BY created_at DESC LIMIT #{offset}, #{pageSize}")
+    List<OverseasReport> findAll(@Param("offset") int offset, @Param("pageSize") int pageSize);
+
+    @Select("SELECT COUNT(*) FROM overseas_reports")
+    long count();
 
     @Update("UPDATE overseas_reports SET " +
-            "report_number = #{reportNumber}, report_path = #{reportPath}, status = #{status}, " +
+            "report_path = #{reportPath}, status = #{status}, " +
             "updated_at = #{updatedAt}, report_no = #{reportNo}, report_no_en = #{reportNoEn}, " +
             "report_date = #{reportDate}, report_date_en = #{reportDateEn}, " +
             "reporter = #{reporter}, reporter_en = #{reporterEn}, " +

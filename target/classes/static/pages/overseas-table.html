@@ -67,22 +67,27 @@
                 <h5 class="card-title mb-0">
                     <i class="bi bi-list-ul me-2"></i>海外报告列表详情
                 </h5>
-                <div class="search-box">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="searchInput" placeholder="搜索报告编号或日期...">
-                        <button class="btn btn-primary" id="searchButton">
-                            <i class="bi bi-search"></i> 搜索
-                        </button>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="overseas-report-add.html" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-1"></i>新增报告
+                    </a>
+                    <div class="search-box">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchInput" placeholder="搜索报告编号或日期...">
+                            <button class="btn btn-primary" id="searchButton">
+                                <i class="bi bi-search"></i> 搜索
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover" id="reportsTable">
                         <thead>
                             <tr>
                                 <th>报告编号</th>
-                                <th>生成日期</th>
+                                <th>产品名称</th>
                                 <th>状态</th>
                                 <th>操作</th>
                             </tr>
@@ -147,63 +152,6 @@
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // 搜索功能
-            $('#searchButton').click(function() {
-                const searchText = $('#searchInput').val().toLowerCase();
-                $('tbody tr').each(function() {
-                    const reportNumber = $(this).find('td:first').text().toLowerCase();
-                    const reportDate = $(this).find('td:eq(1)').text().toLowerCase();
-                    const isVisible = reportNumber.includes(searchText) || reportDate.includes(searchText);
-                    $(this).toggle(isVisible);
-                });
-            });
-
-            $('#searchInput').keyup(function(e) {
-                if (e.key === 'Enter') {
-                    $('#searchButton').click();
-                }
-            });
-
-            // 查看详情
-            $('.view-detail').click(function() {
-                const reportId = $(this).data('id');
-                window.location.href = `overseas-report-detail.html?id=${reportId}`;
-            });
-
-            // 删除报告
-            $('.delete-report').click(function() {
-                if (confirm('确定要删除这份报告吗？')) {
-                    const reportId = $(this).data('id');
-                    const $row = $(this).closest('tr');
-                    
-                    $.ajax({
-                        url: `/overseas/report/${reportId}`,
-                        method: 'DELETE',
-                        success: function(result) {
-                            if (result === 'success') {
-                                $row.remove();
-                                showToast('报告已成功删除');
-                            } else {
-                                showToast('删除报告失败：' + result);
-                            }
-                        },
-                        error: function(error) {
-                            showToast('删除报告时发生错误：' + error);
-                        }
-                    });
-                }
-            });
-
-            // Toast提示
-            function showToast(message) {
-                const toast = $('#toast');
-                toast.find('.toast-body').text(message);
-                const bsToast = new bootstrap.Toast(toast);
-                bsToast.show();
-            }
-        });
-    </script>
+    <script src="../js/overseas-table.js"></script>
 </body>
 </html> 

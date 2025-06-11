@@ -1032,7 +1032,6 @@ public class SmartSolveAutomationService {
         OverseasReport report = new OverseasReport();
         
         // 设置基本信息
-        report.setReportNumber(cellText_record_number);  // 索引编号
         report.setReportPath(currentURl);  // 报告文件路径
         report.setStatus("ACTIVE");  // 报告状态
         report.setCreatedAt(LocalDateTime.now());  // 创建时间

@@ -458,3 +458,76 @@ body {
     color: #212529;
     box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
+
+/* Toast提示样式 */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 4px;
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease-in-out;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.toast-message.show {
+    transform: translateX(0);
+}
+
+.toast-message .toast-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+}
+
+.toast-message .toast-text {
+    flex: 1;
+}
+
+.toast-message .toast-message {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.toast-message .toast-details {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.toast-message.success {
+    border-left: 4px solid #52c41a;
+}
+
+.toast-message.error {
+    border-left: 4px solid #ff4d4f;
+}
+
+.toast-message.info {
+    border-left: 4px solid #1890ff;
+}
+
+.toast-message i {
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.toast-message.success i {
+    color: #52c41a;
+}
+
+.toast-message.error i {
+    color: #ff4d4f;
+}
+
+.toast-message.info i {
+    color: #1890ff;
+}
