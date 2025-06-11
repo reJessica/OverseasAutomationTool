@@ -1,3 +1,6 @@
+// 全局变量
+window.currentPage = 0;
+
 // Toast提示
 function showToast(message) {
     const toast = $('#toast');
@@ -8,6 +11,7 @@ function showToast(message) {
 
 // 获取报告列表
 function loadReports(page = 0, searchText = '') {
+    window.currentPage = page;  // 更新当前页码
     $.ajax({
         url: '/overseas/api/report/list',
         method: 'GET',
@@ -21,6 +25,7 @@ function loadReports(page = 0, searchText = '') {
             if (response && response.reports) {
                 const reports = response.reports || [];
                 const totalPages = response.totalPages || 0;
+                window.currentPage = response.currentPage || 0;  // 从响应中更新当前页码
                 
                 console.log('报告数据:', reports);
                 
@@ -43,8 +48,8 @@ function loadReports(page = 0, searchText = '') {
                         <td>
                             <button class="btn btn-sm btn-info" onclick="viewReportDetail(${report.id})">查看</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteReport(${report.id})">删除</button>
-                            <button class="btn btn-sm btn-warning" onclick="updateStatus(${report.id}, '${report.status === 'DRAFT' ? 'PUBLISHED' : 'DRAFT'}')">
-                                ${report.status === 'DRAFT' ? '发布' : '撤回'}
+                            <button class="btn btn-sm btn-warning" onclick="updateStatus(${report.id}, '${report.status === 'PENDING' ? 'PROCESSED' : 'PENDING'}')">
+                                ${report.status === 'PENDING' ? '已处理' : '待处理'}
                             </button>
                         </td>
                     `;
@@ -92,7 +97,7 @@ function deleteReport(id) {
             success: function(response) {
                 if (response.success) {
                     showToast('删除成功');
-                    loadReports(currentPage);
+                    loadReports(window.currentPage);  // 使用当前页码重新加载
                 } else {
                     showToast('删除失败：' + response.message);
                 }
@@ -113,7 +118,7 @@ function updateStatus(id, status) {
         success: function(response) {
             if (response.success) {
                 showToast('状态更新成功');
-                loadReports(currentPage);
+                loadReports(0);  // 直接使用0作为页码重新加载
             } else {
                 showToast('状态更新失败：' + response.message);
             }

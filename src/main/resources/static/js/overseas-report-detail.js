@@ -253,9 +253,28 @@ $(document).ready(function() {
             console.log(`表单字段 ${key}: ${value}`);
         });
         
+        // 检查report_no字段
+        const reportNoInput = $('input[name="report_no"]');
+        console.log('report_no input元素:', reportNoInput.length > 0 ? '存在' : '不存在');
+        console.log('report_no当前值:', reportNoInput.val());
+        
+        // 如果表单中没有report_no，尝试从URL参数获取
+        if (!data.report_no) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportId = urlParams.get('id');
+            if (reportId) {
+                // 从已加载的数据中获取report_no
+                const currentReportNo = $('input[name="report_no"]').val();
+                if (currentReportNo) {
+                    data.report_no = currentReportNo;
+                    console.log('从当前表单获取report_no:', currentReportNo);
+                }
+            }
+        }
+        
         // 验证必填字段
         if (!data.report_no) {
-            showToast('error', '报告编号不能为空');
+            showToast('报告编号不能为空', 'error');
             return;
         }
         
@@ -274,12 +293,12 @@ $(document).ready(function() {
             success: function(response) {
                 console.log('服务器响应:', response);
                 if (response.success) {
-                    showToast('success', response.message || '更新成功');
+                    showToast('保存成功', 'success', '报告已保存，即将跳转到列表页面...');
                     setTimeout(() => {
                         window.location.href = '/pages/overseas-table.html';
                     }, 1500);
                 } else {
-                    showToast('error', response.message || '更新失败');
+                    showToast('保存失败', 'error', response.message || '未知错误');
                 }
             },
             error: function(xhr, status, error) {
@@ -291,18 +310,18 @@ $(document).ready(function() {
                 } catch (e) {
                     console.error('解析错误响应失败:', e);
                 }
-                showToast('error', errorMsg);
+                showToast('保存失败', 'error', errorMsg);
             }
         });
     });
     
     // 导出功能
     window.exportToExcel = function() {
-        showToast('info', '导出Excel功能开发中...');
+        showToast('导出Excel功能开发中...', 'info');
     };
     
     window.exportToWord = function() {
-        showToast('info', '导出Word功能开发中...');
+        showToast('导出Word功能开发中...', 'info');
     };
 });
 
@@ -404,11 +423,11 @@ function loadReportDetail(id) {
             $('input[name="expiration_date_en"]').val(report.expirationDateEn ? report.expirationDateEn.split('T')[0] : '');
             
             console.log('数据加载成功，表单已更新');
-            showToast('success', '数据加载成功');
+            showToast('数据加载成功', 'success');
         },
         error: function(xhr, status, error) {
             console.error('API调用失败:', {xhr, status, error});
-            showToast('error', '获取报告详情失败：' + (xhr.responseJSON?.error || '未知错误'));
+            showToast('获取报告详情失败：' + (xhr.responseJSON?.error || '未知错误'), 'error');
         }
     });
 }
@@ -425,26 +444,35 @@ function exportReport(path) {
 }
 
 // Toast提示
-function showToast(type, message) {
-    const toast = $('<div>')
-        .addClass('toast')
-        .addClass(type === 'success' ? 'bg-success' : 'bg-danger')
-        .addClass('text-white')
-        .css({
-            'position': 'fixed',
-            'top': '20px',
-            'right': '20px',
-            'padding': '10px 20px',
-            'border-radius': '4px',
-            'z-index': '9999'
-        })
-        .text(message);
-        
-    $('body').append(toast);
+function showToast(message, type = 'success', details = '') {
+    // 创建toast元素
+    const toast = document.createElement('div');
+    toast.className = `toast-message ${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : type === 'error' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill'}"></i>
+            <div class="toast-text">
+                <div class="toast-main-message">${message}</div>
+                ${details ? `<div class="toast-details">${details}</div>` : ''}
+            </div>
+        </div>
+    `;
     
+    // 添加到页面
+    document.body.appendChild(toast);
+    
+    // 添加显示动画
     setTimeout(() => {
-        toast.fadeOut(() => toast.remove());
-    }, 3000);
+        toast.classList.add('show');
+    }, 100);
+    
+    // 5秒后移除
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 5000);
 }
 
 function showModal(message) {
