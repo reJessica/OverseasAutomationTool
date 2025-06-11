@@ -111,6 +111,14 @@ public class OverseasReportService {
     public void updateReport(Long id, OverseasReport report) {
         try {
             logger.info("开始更新报告，ID：{}", id);
+            
+            // 检查报告编号是否已存在（排除当前报告）
+            OverseasReport existingReport = overseasReportMapper.findByReportNumber(report.getReportNo());
+            if (existingReport != null && !existingReport.getId().equals(id)) {
+                logger.warn("报告编号已存在：{}", report.getReportNo());
+                throw new RuntimeException("报告编号已存在：" + report.getReportNo());
+            }
+            
             overseasReportMapper.update(report);
             logger.info("报告更新成功");
         } catch (Exception e) {

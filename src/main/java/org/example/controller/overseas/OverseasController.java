@@ -311,8 +311,8 @@ public class OverseasController {
         report.setRegistrationNoEn((String) map.get("registration_no_en"));
         report.setModule((String) map.get("module"));
         report.setModuleEn((String) map.get("module_en"));
-        report.setProductPackage((String) map.get("package"));
-        report.setProductPackageEn((String) map.get("package_en"));
+        report.setProductPackage((String) map.get("product_package"));
+        report.setProductPackageEn((String) map.get("product_package_en"));
         report.setOriginCountry((String) map.get("origin_country"));
         report.setOriginCountryEn((String) map.get("origin_country_en"));
         report.setClassType((String) map.get("class_type"));

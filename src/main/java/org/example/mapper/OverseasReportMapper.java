@@ -15,7 +15,7 @@ public interface OverseasReportMapper {
             "address, address_en, contact_person, contact_person_en, " +
             "tel, tel_en, occurrence_place, occurrence_place_en, " +
             "product_name, product_name_en, registration_no, registration_no_en, " +
-            "module, module_en, package, package_en, origin_country, origin_country_en, " +
+            "module, module_en, product_package, product_package_en, origin_country, origin_country_en, " +
             "class_type, class_type_en, product_type, product_type_en, " +
             "product_lot, product_lot_en, product_no, product_no_en, " +
             "udi, manufacturing_date, manufacturing_date_en, expiration_date, expiration_date_en, " +
@@ -87,7 +87,7 @@ public interface OverseasReportMapper {
             "product_name = #{productName}, product_name_en = #{productNameEn}, " +
             "registration_no = #{registrationNo}, registration_no_en = #{registrationNoEn}, " +
             "module = #{module}, module_en = #{moduleEn}, " +
-            "package = #{productPackage}, package_en = #{packageEn}, " +
+            "product_package = #{productPackage}, product_package_en = #{productPackageEn}, " +
             "origin_country = #{originCountry}, origin_country_en = #{originCountryEn}, " +
             "class_type = #{classType}, class_type_en = #{classTypeEn}, " +
             "product_type = #{productType}, product_type_en = #{productTypeEn}, " +
@@ -114,22 +114,16 @@ public interface OverseasReportMapper {
             "usage_site = #{usageSite}, usage_site_en = #{usageSiteEn}, " +
             "institution_name = #{institutionName}, institution_name_en = #{institutionNameEn}, " +
             "usage_process = #{usageProcess}, usage_process_en = #{usageProcessEn}, " +
-            "drug_device_comb_desc = #{drugDeviceCombDesc}, " +
-            "drug_device_comb_desc_en = #{drugDeviceCombDescEn}, " +
+            "drug_device_comb_desc = #{drugDeviceCombDesc}, drug_device_comb_desc_en = #{drugDeviceCombDescEn}, " +
             "investigation_flag = #{investigationFlag}, investigation_flag_en = #{investigationFlagEn}, " +
             "investigation_desc = #{investigationDesc}, investigation_desc_en = #{investigationDescEn}, " +
             "relative_evaluation = #{relativeEvaluation}, relative_evaluation_en = #{relativeEvaluationEn}, " +
-            "event_reason_analysis = #{eventReasonAnalysis}, " +
-            "event_reason_analysis_en = #{eventReasonAnalysisEn}, " +
-            "need_risk_assessment = #{needRiskAssessment}, " +
-            "need_risk_assessment_en = #{needRiskAssessmentEn}, " +
+            "event_reason_analysis = #{eventReasonAnalysis}, event_reason_analysis_en = #{eventReasonAnalysisEn}, " +
+            "need_risk_assessment = #{needRiskAssessment}, need_risk_assessment_en = #{needRiskAssessmentEn}, " +
             "plan_submit_date = #{planSubmitDate}, plan_submit_date_en = #{planSubmitDateEn}, " +
-            "has_control_measure = #{hasControlMeasure}, " +
-            "has_control_measure_en = #{hasControlMeasureEn}, " +
-            "control_measure_details = #{controlMeasureDetails}, " +
-            "control_measure_details_en = #{controlMeasureDetailsEn}, " +
-            "no_control_measure_reason = #{noControlMeasureReason}, " +
-            "no_control_measure_reason_en = #{noControlMeasureReasonEn} " +
+            "has_control_measure = #{hasControlMeasure}, has_control_measure_en = #{hasControlMeasureEn}, " +
+            "control_measure_details = #{controlMeasureDetails}, control_measure_details_en = #{controlMeasureDetailsEn}, " +
+            "no_control_measure_reason = #{noControlMeasureReason}, no_control_measure_reason_en = #{noControlMeasureReasonEn} " +
             "WHERE id = #{id}")
     void update(OverseasReport report);
 

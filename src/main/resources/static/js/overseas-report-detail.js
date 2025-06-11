@@ -27,7 +27,7 @@ const ExportService = {
             ['产品名称', data.product_name, 'Product Name', data.product_name_en],
             ['注册证编号', data.registration_no, 'Registration no.', data.registration_no_en],
             ['型号', data.module, 'Module', data.module_en],
-            ['规格', data.package, 'Package', data.package_en],
+            ['规格', data.product_package, 'Package', data.product_package_en],
             ['产地', data.origin_country, 'Origin of Country', data.origin_country_en],
             ['管理类别', data.class_type, 'Class Type', data.class_type_en],
             ['产品类别', data.product_type, 'Product type', data.product_type_en],
@@ -123,7 +123,7 @@ const ExportService = {
                     this.createInfoParagraph("产品名称", data.product_name, "Product Name", data.product_name_en),
                     this.createInfoParagraph("注册证编号", data.registration_no, "Registration no.", data.registration_no_en),
                     this.createInfoParagraph("型号", data.module, "Module", data.module_en),
-                    this.createInfoParagraph("规格", data.package, "Package", data.package_en),
+                    this.createInfoParagraph("规格", data.product_package, "Package", data.product_package_en),
                     this.createInfoParagraph("产地", data.origin_country, "Origin of Country", data.origin_country_en),
                     this.createInfoParagraph("管理类别", data.class_type, "Class Type", data.class_type_en),
                     this.createInfoParagraph("产品类别", data.product_type, "Product type", data.product_type_en),
@@ -246,28 +246,44 @@ $(document).ready(function() {
         console.log('表单提交事件触发');
         
         // 获取表单数据
-        const formData = {};
-        $(this).serializeArray().forEach(item => {
-            formData[item.name] = item.value;
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+            console.log(`表单字段 ${key}: ${value}`);
         });
         
+        // 验证必填字段
+        if (!data.report_no) {
+            showToast('error', '报告编号不能为空');
+            return;
+        }
+        
         // 设置 report_no_en 与 report_no 相同
-        formData.report_no_en = formData.report_no;
+        data.report_no_en = data.report_no;
+        
+        console.log('准备发送的数据:', data);
+        console.log('请求URL:', `/overseas/api/report/modify/${reportId}`);
         
         // 发送更新请求
         $.ajax({
-            url: `/overseas/report/update/${reportId}`,
+            url: `/overseas/api/report/modify/${reportId}`,
             method: 'PUT',
             contentType: 'application/json',
-            data: JSON.stringify(formData),
+            data: JSON.stringify(data),
             success: function(response) {
+                console.log('服务器响应:', response);
                 if (response.success) {
                     showToast('success', response.message || '更新成功');
+                    setTimeout(() => {
+                        window.location.href = '/pages/overseas-table.html';
+                    }, 1500);
                 } else {
                     showToast('error', response.message || '更新失败');
                 }
             },
             error: function(xhr, status, error) {
+                console.error('请求失败:', {xhr, status, error});
                 let errorMsg = '更新失败';
                 try {
                     const response = JSON.parse(xhr.responseText);
@@ -296,48 +312,103 @@ function loadReportDetail(id) {
         url: '/overseas/api/report/info/' + id,
         method: 'GET',
         success: function(response) {
-            if (response.success) {
-                const report = response.data;
-                // 填充表单数据
-                $('#reportId').val(report.id);
-                $('#reportName').val(report.name);
-                $('#reportType').val(report.type);
-                $('#reportStatus').val(report.status);
-                $('#reportContent').val(report.content);
-                $('#reportPath').val(report.path);
-                $('#reportCreateTime').val(report.createTime);
-                $('#reportUpdateTime').val(report.updateTime);
-            } else {
-                showToast('获取报告详情失败：' + response.message);
-            }
+            console.log('获取到的原始响应:', response);  // 添加日志
+            
+            // 直接使用响应数据
+            const report = response;
+            console.log('获取到的报告数据:', report);  // 添加日志
+            
+            // 填充表单数据
+            $('input[name="id"]').val(report.id || '');
+            $('input[name="report_no"]').val(report.reportNo || '');
+            $('input[name="report_date"]').val(report.reportDate ? report.reportDate.split('T')[0] : '');
+            $('select[name="reporter"]').val(report.reporter || '');
+            $('input[name="customer_name"]').val(report.customerName || '');
+            $('input[name="address"]').val(report.address || '');
+            $('input[name="contact_person"]').val(report.contactPerson || '');
+            $('input[name="tel"]').val(report.tel || '');
+            $('input[name="occurrence_place"]').val(report.occurrencePlace || '');
+            
+            // 医疗器械情况
+            $('input[name="product_name"]').val(report.productName || '');
+            $('input[name="registration_no"]').val(report.registrationNo || '');
+            $('input[name="module"]').val(report.module || '');
+            $('input[name="product_package"]').val(report.productPackage || '');
+            $('input[name="origin_country"]').val(report.originCountry || '');
+            $('input[name="class_type"]').val(report.classType || '');
+            $('input[name="product_type"]').val(report.productType || '');
+            $('input[name="product_lot"]').val(report.productLot || '');
+            $('input[name="product_no"]').val(report.productNo || '');
+            $('input[name="udi"]').val(report.udi || '');
+            $('input[name="manufacturing_date"]').val(report.manufacturingDate ? report.manufacturingDate.split('T')[0] : '');
+            $('input[name="expiration_date"]').val(report.expirationDate ? report.expirationDate.split('T')[0] : '');
+            
+            // 不良事件情况
+            $('input[name="event_occurrence_date"]').val(report.eventOccurrenceDate ? report.eventOccurrenceDate.split('T')[0] : '');
+            $('input[name="knowledge_date"]').val(report.knowledgeDate ? report.knowledgeDate.split('T')[0] : '');
+            $('input[name="injury_type"]').val(report.injuryType || '');
+            $('input[name="injury"]').val(report.injury || '');
+            $('textarea[name="device_malfunction_desc"]').val(report.deviceMalfunctionDesc || '');
+            $('input[name="patient_name"]').val(report.patientName || '');
+            $('input[name="birth_date"]').val(report.birthDate ? report.birthDate.split('T')[0] : '');
+            $('input[name="age"]').val(report.age || '');
+            $('input[name="gender"]').val(report.gender || '');
+            $('input[name="medical_record_no"]').val(report.medicalRecordNo || '');
+            $('textarea[name="medical_history"]').val(report.medicalHistory || '');
+            
+            // 使用情况
+            $('textarea[name="disease_intended"]').val(report.diseaseIntended || '');
+            $('input[name="usage_date"]').val(report.usageDate ? report.usageDate.split('T')[0] : '');
+            $('input[name="usage_site"]').val(report.usageSite || '');
+            $('input[name="institution_name"]').val(report.institutionName || '');
+            $('textarea[name="usage_process"]').val(report.usageProcess || '');
+            $('textarea[name="drug_device_comb_desc"]').val(report.drugDeviceCombDesc || '');
+            
+            // 事件调查
+            $('input[name="investigation_flag"]').val(report.investigationFlag || '');
+            $('textarea[name="investigation_desc"]').val(report.investigationDesc || '');
+            
+            // 评价结果
+            $('input[name="relative_evaluation"]').val(report.relativeEvaluation || '');
+            $('textarea[name="event_reason_analysis"]').val(report.eventReasonAnalysis || '');
+            $('input[name="need_risk_assessment"]').val(report.needRiskAssessment || '');
+            $('input[name="plan_submit_date"]').val(report.planSubmitDate ? report.planSubmitDate.split('T')[0] : '');
+            
+            // 控制措施
+            $('input[name="has_control_measure"]').val(report.hasControlMeasure || '');
+            $('textarea[name="control_measure_details"]').val(report.controlMeasureDetails || '');
+            $('textarea[name="no_control_measure_reason"]').val(report.noControlMeasureReason || '');
+            
+            // 英文字段
+            $('input[name="report_no_en"]').val(report.reportNoEn || '');
+            $('input[name="report_date_en"]').val(report.reportDateEn ? report.reportDateEn.split('T')[0] : '');
+            $('select[name="reporter_en"]').val(report.reporterEn || '');
+            $('input[name="customer_name_en"]').val(report.customerNameEn || '');
+            $('input[name="address_en"]').val(report.addressEn || '');
+            $('input[name="contact_person_en"]').val(report.contactPersonEn || '');
+            $('input[name="tel_en"]').val(report.telEn || '');
+            $('input[name="occurrence_place_en"]').val(report.occurrencePlaceEn || '');
+            
+            // 其他英文字段
+            $('input[name="product_name_en"]').val(report.productNameEn || '');
+            $('input[name="registration_no_en"]').val(report.registrationNoEn || '');
+            $('input[name="module_en"]').val(report.moduleEn || '');
+            $('input[name="product_package_en"]').val(report.productPackageEn || '');
+            $('input[name="origin_country_en"]').val(report.originCountryEn || '');
+            $('input[name="class_type_en"]').val(report.classTypeEn || '');
+            $('input[name="product_type_en"]').val(report.productTypeEn || '');
+            $('input[name="product_lot_en"]').val(report.productLotEn || '');
+            $('input[name="product_no_en"]').val(report.productNoEn || '');
+            $('input[name="udi_en"]').val(report.udiEn || '');
+            $('input[name="manufacturing_date_en"]').val(report.manufacturingDateEn ? report.manufacturingDateEn.split('T')[0] : '');
+            $('input[name="expiration_date_en"]').val(report.expirationDateEn ? report.expirationDateEn.split('T')[0] : '');
+            
+            console.log('数据加载成功，表单已更新');
+            showToast('success', '数据加载成功');
         },
-        error: function(xhr) {
-            showToast('获取报告详情失败：' + (xhr.responseJSON?.error || '未知错误'));
-        }
-    });
-}
-
-// 更新报告
-function updateReport() {
-    const formData = new FormData($('#reportForm')[0]);
-    const id = $('#reportId').val();
-    
-    $.ajax({
-        url: '/overseas/api/report/modify/' + id,
-        method: 'PUT',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.success) {
-                showToast('更新成功');
-                window.location.href = '/overseas/table';
-            } else {
-                showToast('更新失败：' + response.message);
-            }
-        },
-        error: function(xhr) {
-            showToast('更新失败：' + (xhr.responseJSON?.error || '未知错误'));
+        error: function(xhr, status, error) {
+            console.error('API调用失败:', {xhr, status, error});
+            showToast('error', '获取报告详情失败：' + (xhr.responseJSON?.error || '未知错误'));
         }
     });
 }

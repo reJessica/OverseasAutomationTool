@@ -80,7 +80,7 @@ function searchReports() {
 
 // 查看报告详情
 function viewReportDetail(id) {
-    window.location.href = `/overseas/report/detail/${id}`;
+    window.location.href = `overseas-report-detail.html?id=${id}`;
 }
 
 // 删除报告
