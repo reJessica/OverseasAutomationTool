@@ -12,78 +12,200 @@ const ExportService = {
         const wb = XLSX.utils.book_new();
         
         // 准备数据
-        const wsData = [
-            ['报告基本情况'],
-            ['报告编号', data.report_no, 'Report No.', data.report_no_en],
-            ['报告日期', data.report_date, 'Report Date', data.report_date_en],
-            ['报告人', data.reporter, 'Reporter', data.reporter_en],
-            ['单位名称', data.customer_name, 'Customer name', data.customer_name_en],
-            ['联系地址', data.address, 'Address', data.address_en],
-            ['联系人', data.contact_person, 'Contact Person', data.contact_person_en],
-            ['联系电话', data.tel, 'Telphone No.', data.tel_en],
-            ['发生地', data.occurrence_place, 'Occurrence place', data.occurrence_place_en],
-            [''],
-            ['医疗器械情况'],
-            ['产品名称', data.product_name, 'Product Name', data.product_name_en],
-            ['注册证编号', data.registration_no, 'Registration no.', data.registration_no_en],
-            ['型号', data.module, 'Module', data.module_en],
-            ['规格', data.product_package, 'Package', data.product_package_en],
-            ['产地', data.origin_country, 'Origin of Country', data.origin_country_en],
-            ['管理类别', data.class_type, 'Class Type', data.class_type_en],
-            ['产品类别', data.product_type, 'Product type', data.product_type_en],
-            ['产品批号', data.product_lot, 'Product Lot', data.product_lot_en],
-            ['产品编号', data.product_no, 'Product No.', data.product_no_en],
-            ['UDI', data.udi, 'UDI', data.udi_en],
-            ['生产日期', data.manufacturing_date, 'Manufacturing Date', data.manufacturing_date_en],
-            ['有效期至', data.expiration_date, 'Expiration Date', data.expiration_date_en],
-            [''],
-            ['不良事件情况'],
-            ['事件发生日期', data.event_occurrence_date, 'Event Occurrence Date', data.event_occurrence_date_en],
-            ['发现或获知日期', data.knowledge_date, 'Knowledge Date', data.knowledge_date_en],
-            ['伤害程度', data.injury_type, 'Injury Type', data.injury_type_en],
-            ['伤害表现', data.injury, 'Injury', data.injury_en],
-            ['器械故障表现', data.device_malfunction_desc, 'Device Malfunction Description', data.device_malfunction_desc_en],
-            [''],
-            ['患者信息'],
-            ['姓名', data.patient_name, 'Patient Name', data.patient_name_en],
-            ['出生日期', data.birth_date, 'Date of Birth', data.birth_date_en],
-            ['年龄', data.age, 'Age', data.age_en],
-            ['性别', data.gender, 'Gender', data.gender_en],
-            ['病历号', data.medical_record_no, 'Medical Record No.', data.medical_record_no_en],
-            ['既往病史', data.medical_history, 'Medical History', data.medical_history_en],
-            [''],
-            ['使用情况'],
-            ['预期治疗疾病或作用', data.disease_intended, 'Disease intended to treat or effect', data.disease_intended_en],
-            ['器械使用日期', data.usage_date, 'Usage Date', data.usage_date_en],
-            ['使用场所', data.usage_site, 'Usage site', data.usage_site_en],
-            ['场所名称', data.institution_name, 'Institution Name', data.institution_name_en],
-            ['使用过程', data.usage_process, 'Usage Process', data.usage_process_en],
-            ['合并用药/械情况说明', data.drug_device_comb_desc, 'Drug/device Combination Description', data.drug_device_comb_desc_en],
-            [''],
-            ['事件调查'],
-            ['是否开展了调查', data.investigation_flag, 'If carry out investigation', data.investigation_flag_en],
-            ['调查情况', data.investigation_desc, 'Investigation description', data.investigation_desc_en],
-            [''],
-            ['评价结果'],
-            ['关联性评价', data.relative_evaluation, 'Relative Evaluation', data.relative_evaluation_en],
-            ['事件原因分析', data.event_reason_analysis, 'Event Reason Analysis', data.event_reason_analysis_en],
-            ['是否需要开展产品风险评价', data.need_risk_assessment, 'If need initiate Product Risk Assessment', data.need_risk_assessment_en],
-            ['计划提交时间', data.plan_submit_date, 'Plan submission Date', data.plan_submit_date_en],
-            [''],
-            ['控制措施'],
-            ['是否已采取控制措施', data.has_control_measure, 'If has taken control measure', data.has_control_measure_en],
-            ['具体控制措施', data.control_measure_details, 'Control measure details', data.control_measure_details_en],
-            ['未采取控制措施原因', data.no_control_measure_reason, 'No control measure reason', data.no_control_measure_reason_en]
-        ];
+ // 准备数据
+ const wsData = [
+    ['报告基本情况','','Report Basic Situation'],
+    [''],
+    ['报告编号', '', data.report_no],
+    ['Report No.', '', ''],
+    [''],
+    ['报告日期', '', data.report_date],
+    ['Report Date', '', ''],
+    [''],
+    ['报告人', '', data.reporter],
+    ['Reporter', '', data.reporter_en],
+    [''],
+    ['单位名称', '', data.customer_name],
+    ['Customer name', '', data.customer_name_en],
+    [''],
+    ['联系地址', '', data.address],
+    ['Address', '', data.address_en],
+    [''],
+    ['联系人', '', data.contact_person],
+    ['Contact Person', '', data.contact_person_en],
+    [''],
+    ['联系电话', '', data.tel],
+    ['Telphone No.', '', ''],
+    [''],
+    ['发生地', '', data.occurrence_place],
+    ['Occurrence place', '', data.occurrence_place_en],
+    [''],
+    ['医疗器械情况','','Medical Device Information'],
+    [''],
+    ['产品名称', '', data.product_name],
+    ['Product Name', '', data.product_name_en],
+    [''],
+    ['注册证编号', '', data.registration_no],
+    ['Registration no.', '', ''],
+    [''],
+    ['型号', '', data.module],
+    ['Module', '', data.module_en],
+    [''],
+    ['规格', '', data.product_package],
+    ['Package', '', data.product_package_en],
+    [''],
+    ['产地', '', data.origin_country],
+    ['Origin of Country', '', data.origin_country_en],
+    [''],
+    ['管理类别', '', data.class_type],
+    ['Class Type', '', data.class_type_en],
+    [''],
+    ['产品类别', '', data.product_type],
+    ['Product type', '', data.product_type_en],
+    [''],
+    ['产品批号', '', data.product_lot],
+    ['Product Lot', '', data.product_lot_en],
+    [''],
+    ['产品编号', '', data.product_no],
+    ['Product No.', '', data.product_no_en],
+    [''],
+    ['UDI', '', data.udi],
+    ['生产日期', '', data.manufacturing_date],
+    ['Manufacturing Date', '', ''],
+    [''],
+    ['有效期至', '', data.expiration_date],
+    ['Expiration Date', '', ''],
+    [''],
+    ['不良事件情况','','Adverse Event Information'],
+    [''],
+    ['事件发生日期', '', data.event_occurrence_date],
+    ['Event Occurrence Date', '', ''],
+    [''],
+    ['发现或获知日期', '', data.knowledge_date],
+    ['Knowledge Date', '', ''],
+    [''],
+    ['伤害程度', '', data.injury_type],
+    ['Injury Type', '', data.injury_type_en],
+    [''],
+    ['伤害表现', '', data.injury],
+    ['Injury', '', data.injury_en],
+    [''],
+    ['器械故障表现', '', data.device_malfunction_desc],
+    ['Device Malfunction Description', '', data.device_malfunction_desc_en],
+    [''],
+    ['姓名', '', data.patient_name],
+    ['Patient Name', '', data.patient_name_en],
+    [''],
+    ['出生日期', '', data.birth_date],
+    ['Date of Birth', '', ''],
+    [''],
+    ['年龄', '', data.age],
+    ['Age', '', data.age_en],
+    [''],
+    ['性别', '', data.gender],
+    ['Gender', '', data.gender_en],
+    [''],
+    ['病历号', '', data.medical_record_no],
+    ['Medical Record No.', '', ''],
+    [''],
+    ['既往病史', '', data.medical_history],
+    ['Medical History', '', data.medical_history_en],
+    [''],
+    ['使用情况','','Usage Details'],
+    [''],
+    ['预期治疗疾病或作用', '', data.disease_intended],
+    ['Disease intended to treat or effect', '', data.disease_intended_en],
+    [''],
+    ['器械使用日期', '', data.usage_date],
+    ['Usage Date', '', ''],
+    [''],
+    ['使用场所', '', data.usage_site],
+    ['Usage site', '', data.usage_site_en],
+    [''],
+    ['场所名称', '', data.institution_name],
+    ['Institution Name', '', data.institution_name_en],
+    [''],
+    ['使用过程', '', data.usage_process],
+    ['Usage Process', '', data.usage_process_en],
+    [''],
+    ['合并用药/械情况说明','','Drug/device Combination Description'],
+    ['Drug/device Combination Description', '',data.drug_device_comb_desc_en],
+    [''],
+    ['事件调查','','Event Investigation'],
+    [''],
+    ['是否开展了调查', '', data.investigation_flag],
+    ['If carry out investigation', '', data.investigation_flag_en],
+    [''],
+    ['调查情况', '', data.investigation_desc],
+    ['Investigation description', '', data.investigation_desc_en],
+    [''],
+    ['评价结果','','Evaluation Results'],
+    [''],
+    ['关联性评价', '', data.relative_evaluation],
+    ['Relative Evaluation', '', data.relative_evaluation_en],
+    [''],
+    ['事件原因分析', '', data.event_reason_analysis,],
+    ['Event Reason Analysis', '', data.event_reason_analysis_en],
+    [''],
+    ['是否需要开展产品风险评价', '', data.need_risk_assessment],
+    ['If need initiate Product Risk Assessment', '', data.need_risk_assessment_en],
+    [''],
+    ['计划提交时间', '', data.plan_submit_date],
+    ['Plan submission Date', '', ''],
+    [''],
+    ['控制措施','','Control Measures'],
+    [''],
+    ['是否已采取控制措施', '', data.has_control_measure],
+    ['If has taken control measure', '', data.has_control_measure_en],
+    [''],
+    ['具体控制措施', '', data.control_measure_details],
+    ['Control measure details', '', data.control_measure_details_en],
+    [''],
+    ['未采取控制措施原因', '', data.no_control_measure_reason],
+    ['No control measure reason', '', data.no_control_measure_reason_en]
+];
 
         // 创建工作表
         const ws = XLSX.utils.aoa_to_sheet(wsData);
+        
+        // 设置列宽
+        const colWidths = [
+            { wch: 20 }, // 中文标签列
+            { wch: 30 }, // 中文内容列
+            { wch: 20 }, // 英文标签列
+            { wch: 30 }  // 英文内容列
+        ];
+        ws['!cols'] = colWidths;
+        
+        // 设置三列表格标题行样式
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = 0; R <= range.e.r; R++) {
+            const cell0 = ws[XLSX.utils.encode_cell({r: R, c: 0})];
+            const cell1 = ws[XLSX.utils.encode_cell({r: R, c: 1})];
+            const cell2 = ws[XLSX.utils.encode_cell({r: R, c: 2})];
+            // 判断是否为标题行：第一列和第三列有内容，第二列为空
+            if (
+                cell0 && cell0.v && cell2 && cell2.v &&
+                (!cell1 || cell1.v === '')
+            ) {
+                for (let C = 0; C < 3; C++) {
+                    const cell = ws[XLSX.utils.encode_cell({r: R, c: C})];
+                    if (cell) {
+                        cell.s = {
+                            font: { bold: true },
+                            fill: { fgColor: { rgb: "E0E0E0" } } // 浅灰色
+                        };
+                    }
+                }
+            }
+        }
         
         // 添加工作表到工作簿
         XLSX.utils.book_append_sheet(wb, ws, "报告详情");
         
         // 导出文件
         XLSX.writeFile(wb, "报告详情.xlsx");
+        showToast('Excel导出成功', 'success');
     },
 
     // 导出为Word
@@ -141,7 +263,6 @@ const ExportService = {
                     this.createInfoParagraph("伤害程度", data.injury_type, "Injury Type", data.injury_type_en),
                     this.createInfoParagraph("伤害表现", data.injury, "Injury", data.injury_en),
                     this.createInfoParagraph("器械故障表现", data.device_malfunction_desc, "Device Malfunction Description", data.device_malfunction_desc_en),
-                    
                     new docx.Paragraph({
                         text: "患者信息",
                         heading: docx.HeadingLevel.HEADING_2
@@ -402,11 +523,27 @@ $(document).ready(function() {
     
     // 导出功能
     window.exportToExcel = function() {
-        showToast('导出Excel功能开发中...', 'info');
+        console.log('开始导出Excel...');
+        const formData = new FormData(document.getElementById('reportForm'));
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+            console.log(`获取到字段 ${key}: ${value}`);
+        });
+        console.log('导出数据:', data);
+        ExportService.exportToExcel(data);
     };
     
     window.exportToWord = function() {
-        showToast('导出Word功能开发中...', 'info');
+        console.log('开始导出Word...');
+        const formData = new FormData(document.getElementById('reportForm'));
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+            console.log(`获取到字段 ${key}: ${value}`);
+        });
+        console.log('导出数据:', data);
+        ExportService.exportToWord(data);
     };
 });
 
@@ -585,8 +722,8 @@ function autoFillProductInfo() {
                 $('input[name="product_name_en"]').val(response.data.product_name_en || '');
                 $('input[name="registration_no"]').val(response.data.registration_no || '');
                 $('input[name="registration_no_en"]').val(response.data.registration_no_en || '');
-                // $('input[name="origin_country"]').val('进口');
-                // $('input[name="origin_country_en"]').val('import');
+                $('input[name="origin_country"]').val('进口');
+                $('input[name="origin_country_en"]').val('import');
                 // $('input[name="class_type"]').val(response.data.class_type || '');
                 // $('input[name="class_type_en"]').val(response.data.class_type_en || '');
                 $('input[name="product_type"]').val(response.data.product_type || '');
