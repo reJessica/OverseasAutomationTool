@@ -126,12 +126,8 @@
                         </div>
                         <div>
                             <label class="form-label">Reporter</label>
-                            <select class="form-control" name="reporter_en">
-                                <option value="">Please select</option>
-                                <option value="新增">New</option>
-                                <option value="周辉">Zhou Hui</option>
-                                <option value="卢梦佳">Lu Mengjia</option>
-                            </select>
+                            <input class="form-control" name="reporter_en">
+                            </input>
                         </div>
                     </div>
                     <div class="form-row-pair">
@@ -273,7 +269,12 @@
                     <div class="form-row-pair">
                         <div>
                             <label class="form-label">产品编号</label>
-                            <input type="text" class="form-control" name="product_no">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="product_no">
+                                <button type="button" class="btn btn-primary" onclick="autoFillProductInfo()">
+                                    <i class="bi bi-magic"></i> 自动填写
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="form-label">Product No.</label>

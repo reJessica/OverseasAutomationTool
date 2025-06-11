@@ -77,6 +77,37 @@ public class OverseasController {
         }
     }
 
+    @GetMapping("/api/report/auto-fill-product")
+    @ResponseBody
+    public ResponseEntity<?> autoFillProductInfo(@RequestParam String productNo) {
+        try {
+            logger.info("自动填写产品信息，产品编号：{}", productNo);
+            
+            // 从material_list表中查询产品信息
+            Map<String, Object> productInfo = reportService.getProductInfoByNo(productNo);
+            
+            if (productInfo == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of(
+                        "success", false,
+                        "message", "未找到对应的产品信息"
+                    ));
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", productInfo
+            ));
+        } catch (Exception e) {
+            logger.error("获取产品信息失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "message", "获取产品信息失败：" + e.getMessage()
+                ));
+        }
+    }
+
     @GetMapping("/api/report/info/{id}")
     @ResponseBody
     public ResponseEntity<?> getReportInfo(@PathVariable Long id) {

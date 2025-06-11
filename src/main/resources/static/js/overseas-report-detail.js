@@ -240,6 +240,91 @@ $(document).ready(function() {
         loadReportDetail(reportId);
     }
 
+    // // 设置默认值
+    // $('input[name="occurrence_place"]').val('境外');
+    // $('input[name="occurrence_place_en"]').val('Out of China');
+    // $('input[name="company_name"]').val('西门子医学诊断产品（上海）有限公司');
+    // $('input[name="company_name_en"]').val('SHD');
+    // $('input[name="address"]').val('中国（上海）自由贸易试验区英伦路38号四层410,411,412室');
+    // $('input[name="address_en"]').val('Room 410,411,412,4 / F, No.38 Yinglun Road, China (Shanghai) Pilot Free Trade Zone');
+
+    // 添加报告人选择联动
+    $('select[name="reporter"]').on('change', function() {
+        const selectedValue = $(this).val();
+        let reporterEn = '';
+        let tel = '';
+        let contactPerson = '';
+        let contactPersonEn = '';
+        let companyName = '';
+        let companyNameEn = '';
+        let address = '';
+        let addressEn = '';
+        let occurrencePlace = '';
+        let occurrencePlaceEn = '';
+        
+        switch(selectedValue) {
+            case '卢梦佳':
+                reporterEn = 'Lu Mengjia';
+                tel = '13718044549';
+                contactPerson = '卢梦佳';
+                contactPersonEn = 'Lu Mengjia';
+                companyName = '西门子医学诊断产品（上海）有限公司';
+                companyNameEn = 'SHD';
+                address = '中国（上海）自由贸易试验区英伦路38号四层410,411,412室';
+                addressEn = 'Room 410,411,412,4 / F, No.38 Yinglun Road, China (Shanghai) Pilot Free Trade Zone';
+                occurrencePlace = '境外';
+                occurrencePlaceEn = 'Out of China';
+                break;
+            case '周辉':
+                reporterEn = 'Zhou Hui';
+                tel = '13911135196';
+                contactPerson = '周辉';
+                contactPersonEn = 'Zhou Hui';
+                companyName = '西门子医学诊断产品（上海）有限公司';
+                companyNameEn = 'SHD';
+                address = '中国（上海）自由贸易试验区英伦路38号四层410,411,412室';
+                addressEn = 'Room 410,411,412,4 / F, No.38 Yinglun Road, China (Shanghai) Pilot Free Trade Zone';
+                occurrencePlace = '境外';
+                occurrencePlaceEn = 'Out of China';
+                break;
+            case '新增':
+                reporterEn = 'New';
+                tel = '';
+                contactPerson = '';
+                contactPersonEn = '';
+                companyName = '';
+                companyNameEn = '';
+                address = '';
+                addressEn = '';
+                occurrencePlace = '';
+                occurrencePlaceEn = '';
+                break;
+            default:
+                reporterEn = selectedValue;
+                tel = '';
+                contactPerson = selectedValue;
+                contactPersonEn = reporterEn;
+                companyName = '';
+                companyNameEn = '';
+                address = '';
+                addressEn = '';
+                occurrencePlace = '';
+                occurrencePlaceEn = '';
+        }
+        
+        // 更新所有相关字段
+        $('input[name="reporter_en"]').val(reporterEn);
+        $('input[name="tel"]').val(tel);
+        $('input[name="contact_person"]').val(contactPerson);
+        $('input[name="contact_person_en"]').val(contactPersonEn);
+        $('input[name="customer_name"]').val(companyName);
+        $('input[name="customer_name_en"]').val(companyNameEn);
+        $('input[name="address"]').val(address);
+        $('input[name="address_en"]').val(addressEn);
+        $('input[name="occurrence_place"]').val(occurrencePlace);
+        $('input[name="occurrence_place_en"]').val(occurrencePlaceEn);
+    });
+
     // 表单提交处理
     $('#reportForm').on('submit', function(e) {
         e.preventDefault();
@@ -401,7 +486,7 @@ function loadReportDetail(id) {
             // 英文字段
             $('input[name="report_no_en"]').val(report.reportNoEn || '');
             $('input[name="report_date_en"]').val(report.reportDateEn ? report.reportDateEn.split('T')[0] : '');
-            $('select[name="reporter_en"]').val(report.reporterEn || '');
+            $('input[name="reporter_en"]').val(report.reporterEn || '');
             $('input[name="customer_name_en"]').val(report.customerNameEn || '');
             $('input[name="address_en"]').val(report.addressEn || '');
             $('input[name="contact_person_en"]').val(report.contactPersonEn || '');
@@ -479,4 +564,44 @@ function showModal(message) {
     document.getElementById('messageModalBody').textContent = message;
     const modal = new bootstrap.Modal(document.getElementById('messageModal'));
     modal.show();
+}
+
+// 自动填写产品信息
+function autoFillProductInfo() {
+    const productNo = $('input[name="product_no"]').val();
+    if (!productNo) {
+        showToast('请输入产品编号', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: '/overseas/api/report/auto-fill-product',
+        method: 'GET',
+        data: { productNo: productNo },
+        success: function(response) {
+            if (response.success) {
+                // 填充产品信息
+                $('input[name="product_name"]').val(response.data.product_name || '');
+                $('input[name="product_name_en"]').val(response.data.product_name_en || '');
+                $('input[name="registration_no"]').val(response.data.registration_no || '');
+                $('input[name="registration_no_en"]').val(response.data.registration_no_en || '');
+                // $('input[name="origin_country"]').val('进口');
+                // $('input[name="origin_country_en"]').val('import');
+                // $('input[name="class_type"]').val(response.data.class_type || '');
+                // $('input[name="class_type_en"]').val(response.data.class_type_en || '');
+                $('input[name="product_type"]').val(response.data.product_type || '');
+                $('input[name="product_type_en"]').val(response.data.product_type_en || '');
+                $('input[name="udi"]').val(response.data.udi || '');
+                $('input[name="udi_en"]').val(response.data.udi_en || '');
+                
+                showToast('产品信息已自动填写', 'success');
+            } else {
+                showToast(response.message || '获取产品信息失败', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('获取产品信息失败:', error);
+            showToast('获取产品信息失败：' + (xhr.responseJSON?.message || '未知错误'), 'error');
+        }
+    });
 } 

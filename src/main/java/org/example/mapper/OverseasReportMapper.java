@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.*;
 import org.example.entity.OverseasReport;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OverseasReportMapper {
@@ -132,4 +133,19 @@ public interface OverseasReportMapper {
 
     @Delete("DELETE FROM overseas_reports WHERE id = #{id}")
     void deleteById(Long id);
+
+    @Select("SELECT " +
+        "SFDALicense_ProductCNname as product_name, " +
+        "SFDALicense_Product_EN_name as product_name_en, " +
+        "SFDALicense as registration_no, " +
+        "SFDALicense as registration_no_en, " +
+        // "manufactures_Address as origin_country, " +
+        // "manufactures_Address as origin_country_en, " +
+        "SFDALicense_产品类别_设备_耗材 as product_type, " +
+        "SFDALicense_产品类别_设备_耗材 as product_type_en, " +
+        "EAN_UPC_DI as udi, " +
+        "EAN_UPC_DI as udi_en " +
+        "FROM material_list " +
+        "WHERE `SMN` = #{productNo}")
+    Map<String, Object> getProductInfoByNo(String productNo);
 } 

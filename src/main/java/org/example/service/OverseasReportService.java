@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OverseasReportService {
@@ -124,6 +125,53 @@ public class OverseasReportService {
         } catch (Exception e) {
             logger.error("更新报告失败", e);
             throw new RuntimeException("更新报告失败：" + e.getMessage());
+        }
+    }
+
+    public Map<String, Object> getProductInfoByNo(String productNo) {
+        try {
+            logger.info("开始获取产品信息，产品编号：{}", productNo);
+            Map<String, Object> productInfo = overseasReportMapper.getProductInfoByNo(productNo);
+            if (productInfo == null) {
+                logger.warn("未找到产品信息，产品编号：{}", productNo);
+                return null;
+            }
+            
+            // 设置默认值
+            if (productInfo.get("origin_country") == null || productInfo.get("origin_country").toString().trim().isEmpty()) {
+                productInfo.put("origin_country", "进口");
+            }
+            if (productInfo.get("origin_country_en") == null || productInfo.get("origin_country_en").toString().trim().isEmpty()) {
+                productInfo.put("origin_country_en", "Import");
+            }
+
+            // 处理product_type的逻辑
+            String productType = productInfo.get("product_type") != null ? productInfo.get("product_type").toString().trim() : "";
+            String productName = productInfo.get("product_name") != null ? productInfo.get("product_name").toString() : "";
+            
+            logger.info("原始product_type: {}, 产品名称: {}", productType, productName);
+            
+            if ("耗材".equals(productType)) {
+                productInfo.put("product_type", "体外诊断剂");
+                productInfo.put("product_type_en", "IVD");
+                logger.info("将product_type从'耗材'修改为'体外诊断剂'");
+            } else {
+                if (productName.contains("电极") || productName.contains("电解质")) {
+                    productInfo.put("product_type", "无源");
+                    productInfo.put("product_type_en", "Passive Power");
+                    logger.info("根据产品名称'{}'，将product_type设置为'无源'", productName);
+                } else {
+                    productInfo.put("product_type", "有源");
+                    productInfo.put("product_type_en", "Active Power");
+                    logger.info("根据产品名称'{}'，将product_type设置为'有源'", productName);
+                }
+            }
+            
+            logger.info("最终product_type: {}", productInfo.get("product_type"));
+            return productInfo;
+        } catch (Exception e) {
+            logger.error("获取产品信息失败", e);
+            throw new RuntimeException("获取产品信息失败：" + e.getMessage());
         }
     }
 } 
