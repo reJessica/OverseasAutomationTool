@@ -174,4 +174,14 @@ public class OverseasReportService {
             throw new RuntimeException("获取产品信息失败：" + e.getMessage());
         }
     }
+
+    public List<OverseasReport> findByIds(List<Long> ids) {
+        try {
+            logger.info("批量查找报告，ID列表：{}", ids);
+            return overseasReportMapper.findByIds(ids);
+        } catch (Exception e) {
+            logger.error("批量查找报告失败", e);
+            throw new RuntimeException("批量查找报告失败：" + e.getMessage());
+        }
+    }
 } 

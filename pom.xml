@@ -72,6 +72,12 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
+                <!-- 另一种方式用于处理 Excel 文件 -->
+        <dependency>
+        <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.3.2</version>
+        </dependency>
         <!-- JSON processing -->
         <dependency>
             <groupId>org.json</groupId>

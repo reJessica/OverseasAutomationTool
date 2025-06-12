@@ -149,4 +149,14 @@ public interface OverseasReportMapper {
         "FROM material_list " +
         "WHERE `SMN` = #{productNo}")
     Map<String, Object> getProductInfoByNo(String productNo);
+
+    @Select({
+        "<script>",
+        "SELECT * FROM overseas_reports WHERE id IN",
+        "<foreach item='item' index='index' collection='list' open='(' separator=',' close=')'>",
+        "#{item}",
+        "</foreach>",
+        "</script>"
+    })
+    List<OverseasReport> findByIds(List<Long> ids);
 } 

@@ -26,6 +26,44 @@
         .report-file.en {
             color: #52c41a;
         }
+        /* 添加复选框样式 */
+        .form-check-input {
+            width: 1.2em;
+            height: 1.2em;
+            margin-top: 0.25em;
+            vertical-align: top;
+            background-color: #fff;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .form-check-input:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .action-btns .btn {
+            margin-right: 5px;
+        }
+        .top-btns {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -67,7 +105,10 @@
                 <h5 class="card-title mb-0">
                     <i class="bi bi-list-ul me-2"></i>海外报告列表详情
                 </h5>
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3 top-btns">
+                    <button class="btn btn-primary" id="batchExportBtn" disabled>
+                        <i class="bi bi-download me-1"></i>批量导出
+                    </button>
                     <a href="overseas-report-add.html" class="btn btn-success">
                         <i class="bi bi-plus-circle me-1"></i>新增报告
                     </a>
@@ -86,6 +127,9 @@
                     <table class="table table-striped table-hover" id="reportsTable">
                         <thead>
                             <tr>
+                                <th style="width:40px;">
+                                    <input type="checkbox" id="selectAll">
+                                </th>
                                 <th>报告编号</th>
                                 <th>报告编码</th>
                                 <th>产品名称</th>
@@ -95,9 +139,12 @@
                         </thead>
                         <tbody>
                             <tr th:each="report : ${reports}">
+                                <td>
+                                    <input type="checkbox" class="report-checkbox" th:data-id="${report.id}">
+                                </td>
                                 <td th:text="${report.reportNo}"></td>
                                 <td th:text="${report.PM_no}"></td>
-                                <td th:text="${#temporals.format(report.reportDate, 'yyyy-MM-dd')}"></td>
+                                <td th:text="${report.productName}"></td>
                                 <td>
                                     <span class="badge" th:classappend="${report.status == 'ACTIVE' ? 'bg-success' : 'bg-danger'}"
                                           th:text="${report.status == 'ACTIVE' ? '有效' : '已删除'}">
@@ -154,6 +201,40 @@
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 事件委托：全选/取消全选
+            $(document).on('change', '#selectAll', function() {
+                $('.report-checkbox').prop('checked', $(this).prop('checked'));
+                updateExportButton();
+            });
+
+            // 事件委托：单个复选框变化时更新导出按钮状态
+            $(document).on('change', '.report-checkbox', function() {
+                updateExportButton();
+                // 更新全选框状态
+                $('#selectAll').prop('checked', $('.report-checkbox:checked').length === $('.report-checkbox').length);
+            });
+
+            // 更新导出按钮状态
+            function updateExportButton() {
+                const checkedCount = $('.report-checkbox:checked').length;
+                $('#batchExportBtn').prop('disabled', checkedCount === 0);
+            }
+
+            // 批量导出按钮点击事件
+            $('#batchExportBtn').click(function() {
+                const selectedIds = $('.report-checkbox:checked').map(function() {
+                    return $(this).data('id');
+                }).get();
+                
+                if (selectedIds.length > 0) {
+                    // TODO: 调用后端导出接口
+                    console.log('选中的报告ID:', selectedIds);
+                }
+            });
+        });
+    </script>
     <script src="../js/overseas-table.js"></script>
 </body>
 </html> 

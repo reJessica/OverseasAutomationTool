@@ -25,6 +25,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.servlet.http.HttpServletResponse;
+import com.alibaba.excel.EasyExcel;
+import javax.servlet.ServletOutputStream;
+import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/overseas")
@@ -302,6 +307,86 @@ public class OverseasController {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/api/report/batch-export")
+    public void batchExport(@RequestBody List<Long> ids, HttpServletResponse response) throws IOException {
+        List<OverseasReport> reports = reportService.findByIds(ids);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = URLEncoder.encode("报告批量导出.xlsx", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        ServletOutputStream out = response.getOutputStream();
+
+        // 1. 第一行：分组大类
+        List<String> groupRow = Arrays.asList(
+            "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况",
+            "医疗器械情况", "医疗器械情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况",
+            "不良事件情况", "不良事件情况", "使用情况", "使用情况", "使用情况", "使用情况", "使用情况", "事件调查", "事件调查", "评价结果", "评价结果", "评价结果", "评价结果", "控制措施", "控制措施", "控制措施"
+        );
+        // 2. 第二行：表头
+        List<String> headerRow = Arrays.asList(
+            "产品名称*", "注册证编号*", "产地*", "管理类别*", "产品类别*", "产品批号*", "产品编号*", "UDI",
+            "生产日期(yyyy-MM-dd)", "有效期至(yyyy-MM-dd)", "事件发生日期*(yyyy-MM-dd)", "发现或获知日期*(yyyy-MM-dd)",
+            "伤害*", "伤害表现*", "姓名", "出生日期(yyyy-MM-dd)", "年龄单位", "年龄", "性别", "病历号", "既往病史",
+            "器械故障表现*", "预期治疗疾病或作用", "器械使用日期*(yyyy-MM-dd)", "使用场所*", "场所名称*", "使用过程*",
+            "合并用药/械情况说明", "是否展开了调查*", "调查情况*", "关联性评价*", "事件原因分析*", "是否需要开展产品风险评价*",
+            "计划提交时间(yyyy-MM-dd)", "是否采取了控制措施*", "具体控制措施描述*", "未采取控制措施原因*"
+        );
+
+        List<List<String>> dataList = new ArrayList<>();
+        dataList.add(groupRow);
+        dataList.add(headerRow);
+
+        // 3. 数据行
+        for (OverseasReport r : reports) {
+            dataList.add(Arrays.asList(
+                n(r.getProductName()), n(r.getRegistrationNo()), n(r.getOriginCountry()), n(r.getClassType()), n(r.getProductType()),
+                n(r.getProductLot()), n(r.getProductNo()), n(r.getUdi()),
+                d(r.getManufacturingDate()), d(r.getExpirationDate()), d(r.getEventOccurrenceDate()), d(r.getKnowledgeDate()),
+                n(r.getInjuryType()), n(r.getInjury()), n(r.getPatientName()), d(r.getBirthDate()), n(r.getAgeEn()), n(r.getAge()), n(r.getGender()), n(r.getMedicalRecordNo()), n(r.getMedicalHistory()),
+                n(r.getDeviceMalfunctionDesc()), n(r.getDiseaseIntended()), d(r.getUsageDate()), n(r.getUsageSite()), n(r.getInstitutionName()), n(r.getUsageProcess()),
+                n(r.getDrugDeviceCombDesc()), n(r.getInvestigationFlag()), n(r.getInvestigationDesc()), n(r.getRelativeEvaluation()), n(r.getEventReasonAnalysis()), n(r.getNeedRiskAssessment()),
+                d(r.getPlanSubmitDate()), n(r.getHasControlMeasure()), n(r.getControlMeasureDetails()), n(r.getNoControlMeasureReason())
+            ));
+        }
+
+        // 4. 合并单元格
+        // 每个大类的起止列（示例，需根据实际表头调整）
+        List<int[]> mergeRegions = Arrays.asList(
+            new int[]{0, 9},   // 医疗器械情况
+            new int[]{10, 21}, // 不良事件情况
+            new int[]{22, 27}, // 使用情况
+            new int[]{28, 29}, // 事件调查
+            new int[]{30, 33}, // 评价结果
+            new int[]{34, 36}  // 控制措施
+        );
+
+        // 写入Excel
+        EasyExcel.write(out)
+            .sheet("报告导出")
+            .registerWriteHandler(new com.alibaba.excel.write.handler.SheetWriteHandler() {
+                @Override
+                public void beforeSheetCreate(com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder writeWorkbookHolder, com.alibaba.excel.write.metadata.holder.WriteSheetHolder writeSheetHolder) {}
+                @Override
+                public void afterSheetCreate(com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder writeWorkbookHolder, com.alibaba.excel.write.metadata.holder.WriteSheetHolder writeSheetHolder) {
+                    org.apache.poi.ss.usermodel.Sheet sheet = writeSheetHolder.getSheet();
+                    // 合并大类单元格
+                    for (int[] region : mergeRegions) {
+                        sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, region[0], region[1]));
+                    }
+                    // 设置列宽
+                    for (int i = 0; i < headerRow.size(); i++) {
+                        sheet.setColumnWidth(i, 20 * 256); // 20字符宽
+                    }
+                }
+            })
+            .doWrite(dataList);
+
+        out.flush();
+        out.close();
+    }
+
+    private String n(Object o) { return o == null ? "" : o.toString(); }
+    private String d(java.time.LocalDate d) { return d == null ? "" : d.toString(); }
 
     // 辅助方法：解析LocalDate
     private LocalDate parseLocalDate(Object value) {

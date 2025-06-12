@@ -42,6 +42,7 @@ function loadReports(page = 0, searchText = '') {
                     console.log('处理单条报告:', report);
                     const row = document.createElement('tr');
                     row.innerHTML = `
+                        <td><input type="checkbox" class="report-checkbox" data-id="${report.id}"></td>
                         <td>${report.reportNo || '-'}</td>
                         <td>${report.pmno || '-'}</td>
                         <td>${report.productName || '-'}</td>
@@ -175,6 +176,47 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('searchInput').addEventListener('keyup', function(e) {
         if (e.key === 'Enter') {
             searchReports();
+        }
+    });
+});
+
+// 批量导出按钮点击事件
+$(document).on('click', '#batchExportBtn', function() {
+    const selectedIds = [];
+    $('.report-checkbox:checked').each(function() {
+        selectedIds.push($(this).data('id'));
+    });
+
+    if (selectedIds.length === 0) {
+        showToast('请先选择要导出的报告！');
+        return;
+    }
+
+    $.ajax({
+        url: '/overseas/api/report/batch-export',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(selectedIds),
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(blob, status, xhr) {
+            let filename = '报告批量导出.xlsx';
+            const disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('filename=') !== -1) {
+                filename = decodeURIComponent(disposition.split('filename=')[1]);
+            }
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        },
+        error: function() {
+            showToast('导出失败，请重试！');
         }
     });
 }); 
