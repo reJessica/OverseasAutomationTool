@@ -43,14 +43,18 @@ function loadReports(page = 0, searchText = '') {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${report.reportNo || '-'}</td>
-                        <td>${report.PM_no || '-'}</td>
+                        <td>${report.pmno || '-'}</td>
                         <td>${report.productName || '-'}</td>
-                        <td>${report.status || '-'}</td>
+                        <td>
+                            <span class="badge ${(report.status || 'PENDING') === 'PENDING' ? 'bg-warning' : 'bg-success'}">
+                                ${(report.status || 'PENDING') === 'PENDING' ? '待处理' : '已处理'}
+                            </span>
+                        </td>
                         <td>
                             <button class="btn btn-sm btn-info" onclick="viewReportDetail(${report.id})">查看</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteReport(${report.id})">删除</button>
-                            <button class="btn btn-sm btn-warning" onclick="updateStatus(${report.id}, '${report.status === 'PENDING' ? 'PROCESSED' : 'PENDING'}')">
-                                ${report.status === 'PENDING' ? '已处理' : '待处理'}
+                            <button class="btn btn-sm btn-warning" onclick="updateStatus(${report.id}, '${(report.status || 'PENDING') === 'PENDING' ? 'PROCESSED' : 'PENDING'}')">
+                                ${(report.status || 'PENDING') === 'PENDING' ? '已处理' : '待处理'}
                             </button>
                         </td>
                     `;

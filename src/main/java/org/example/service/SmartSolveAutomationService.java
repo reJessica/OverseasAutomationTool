@@ -912,12 +912,13 @@ public class SmartSolveAutomationService {
         System.out.print("使用过程 ");
         String originalText = description.getText();
         System.out.println(originalText);
-        originalText = originalText.replaceAll("[\n\r]+", " ");
-
+        // originalText = originalText.replaceAll("[\n\r]+", " ");
+//修改2
         WebElement B7 = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[5]/div/div/div/div/div[5]/fieldset/div[6]/div/ul/li[2]/div/div/div"));
         System.out.print("B7 ");
         String B7OriginalText = B7.getText();
-        B7OriginalText = B7OriginalText.replaceAll("[\n\r]+", " ");
+        // B7OriginalText = B7OriginalText.replaceAll("[\n\r]+", " ");
+        //修改3
 
         String translatedOriginalText = TranslationUtil2.translate(originalText);
         try {
@@ -954,12 +955,16 @@ public class SmartSolveAutomationService {
             System.out.print("h8 ");
             String h8OriginalText = h8.getText();
             System.out.println(h8OriginalText);
-            String h8OriginalText2 = h8OriginalText.replaceAll("[\n\r]+", " ");
-            System.out.println("h8替换换行符");
-            System.out.println(h8OriginalText2);
-            String translatedH8OriginalText2 = TranslationUtil.translate(h8OriginalText2);
-            currentRow.add(translatedH8OriginalText2);
-            currentRowEnglish.add(h8OriginalText2);
+            //修改1
+            // String h8OriginalText2 = h8OriginalText.replaceAll("[\n\r]+", " ");
+            // System.out.println("h8替换换行符");
+            // System.out.println(h8OriginalText2);
+            // String translatedH8OriginalText2 = TranslationUtil.translate(h8OriginalText2);
+            // currentRow.add(translatedH8OriginalText2);
+            // currentRowEnglish.add(h8OriginalText2);
+            String translatedH8OriginalText = TranslationUtil.translate(h8OriginalText);
+            currentRow.add(translatedH8OriginalText);
+            currentRowEnglish.add(h8OriginalText);
         } catch (NoSuchElementException e) {
             System.out.println("未找到 h8 元素");
             currentRow.add("");

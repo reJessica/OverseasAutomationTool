@@ -36,7 +36,7 @@ public interface OverseasReportMapper {
             "no_control_measure_reason, no_control_measure_reason_en" +
             ") VALUES (" +
             "#{reportPath}, #{status}, #{createdAt}, #{updatedAt}, " +
-            "#{reportNo}, #{reportNoEn}, #{PM_no}, #{reportDate}, #{reportDateEn}, " +
+            "#{reportNo}, #{reportNoEn}, #{PMNo}, #{reportDate}, #{reportDateEn}, " +
             "#{reporter}, #{reporterEn}, #{customerName}, #{customerNameEn}, " +
             "#{address}, #{addressEn}, #{contactPerson}, #{contactPersonEn}, " +
             "#{tel}, #{telEn}, #{occurrencePlace}, #{occurrencePlaceEn}, " +
@@ -69,7 +69,7 @@ public interface OverseasReportMapper {
     @Select("SELECT * FROM overseas_reports WHERE report_no = #{reportNumber}")
     OverseasReport findByReportNumber(String reportNumber);
 
-    @Select("SELECT * FROM overseas_reports ORDER BY created_at DESC LIMIT #{offset}, #{pageSize}")
+    @Select("SELECT * FROM overseas_reports ORDER BY status = 'PENDING' DESC, created_at DESC LIMIT #{offset}, #{pageSize}")
     List<OverseasReport> findAll(@Param("offset") int offset, @Param("pageSize") int pageSize);
 
     @Select("SELECT COUNT(*) FROM overseas_reports")
@@ -78,7 +78,7 @@ public interface OverseasReportMapper {
     @Update("UPDATE overseas_reports SET " +
             "report_path = #{reportPath}, status = #{status}, " +
             "updated_at = #{updatedAt}, report_no = #{reportNo}, report_no_en = #{reportNoEn}, " +
-            "PM_no = #{PM_no}, " +
+            "PM_no = #{PMNo}, " +
             "report_date = #{reportDate}, report_date_en = #{reportDateEn}, " +
             "reporter = #{reporter}, reporter_en = #{reporterEn}, " +
             "customer_name = #{customerName}, customer_name_en = #{customerNameEn}, " +

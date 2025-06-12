@@ -156,7 +156,7 @@ public class OverseasController {
             
             report.setCreatedAt(LocalDateTime.now());
             report.setUpdatedAt(LocalDateTime.now());
-            report.setStatus("ACTIVE");
+            report.setStatus("PENDING");
             
             reportService.saveReport(report);
             
@@ -319,7 +319,7 @@ public class OverseasController {
         // 基本信息
         report.setReportNo((String) map.get("report_no"));
         report.setReportNoEn((String) map.get("report_no_en"));
-        report.setPM_no((String) map.get("PM_no"));
+        report.setPMNo((String) map.get("PM_no"));
         report.setReportPath((String) map.get("report_path"));
         report.setStatus((String) map.get("status"));
         report.setReportDate(parseLocalDate(map.get("report_date")));

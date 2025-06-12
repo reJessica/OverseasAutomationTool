@@ -558,10 +558,14 @@ function loadReportDetail(id) {
             // 直接使用响应数据
             const report = response;
             console.log('获取到的报告数据:', report);  // 添加日志
+            console.log('PM_no字段值:', report.pmno);  // 添加PM_no字段的日志
             
             // 填充表单数据
             $('input[name="id"]').val(report.id || '');
-            $('input[name="report_no"]').val(report.reportNo || '');
+            $('input[name="report_no"]').val(report.reportNo || report.reportNoEn || '');
+            console.log('设置PM_no前的表单值:', $('input[name="PM_no"]').val());  // 添加日志
+            $('input[name="PM_no"]').val(report.pmno || report.PMNo || '');  // 尝试两种可能的字段名
+            console.log('设置PM_no后的表单值:', $('input[name="PM_no"]').val());  // 添加日志
             $('input[name="report_date"]').val(report.reportDate ? report.reportDate.split('T')[0] : '');
             $('select[name="reporter"]').val(report.reporter || '');
             $('input[name="customer_name"]').val(report.customerName || '');

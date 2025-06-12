@@ -119,7 +119,8 @@ CREATE TABLE overseas_reports (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. 添加索引
-ALTER TABLE overseas_reports ADD INDEX idx_report_number (report_number);
+ALTER TABLE overseas_reports ADD INDEX idx_report_number (report_no);
+ALTER TABLE overseas_reports ADD INDEX idx_PM_no (PM_no);
 ALTER TABLE overseas_reports ADD INDEX idx_product_name (product_name);
 ALTER TABLE overseas_reports ADD INDEX idx_registration_number (registration_no);
 ALTER TABLE overseas_reports ADD INDEX idx_status (status);
