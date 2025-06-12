@@ -31,12 +31,42 @@ public class OverseasReportService {
         }
     }
 
+    public List<OverseasReport> searchReports(String searchText, int page, int size) {
+        return searchReports(searchText, true, page, size);
+    }
+
+    public List<OverseasReport> searchReports(String searchText, boolean exactMatch, int page, int size) {
+        try {
+            logger.info("开始搜索报告，搜索文本：{}，精确匹配：{}，页码：{}，每页大小：{}", searchText, exactMatch, page, size);
+            int offset = page * size;
+            List<OverseasReport> reports = overseasReportMapper.searchReports(searchText, exactMatch, offset, size);
+            logger.info("搜索完成，找到 {} 条报告记录", reports.size());
+            return reports;
+        } catch (Exception e) {
+            logger.error("搜索报告失败", e);
+            throw new RuntimeException("搜索报告失败：" + e.getMessage());
+        }
+    }
+
     public long getTotalReports() {
         try {
             return overseasReportMapper.count();
         } catch (Exception e) {
             logger.error("获取报告总数失败", e);
             throw new RuntimeException("获取报告总数失败：" + e.getMessage());
+        }
+    }
+
+    public long getTotalSearchResults(String searchText) {
+        return getTotalSearchResults(searchText, true);
+    }
+
+    public long getTotalSearchResults(String searchText, boolean exactMatch) {
+        try {
+            return overseasReportMapper.countSearchResults(searchText, exactMatch);
+        } catch (Exception e) {
+            logger.error("获取搜索结果总数失败", e);
+            throw new RuntimeException("获取搜索结果总数失败：" + e.getMessage());
         }
     }
 

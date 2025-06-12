@@ -2,23 +2,35 @@
 window.currentPage = 0;
 
 // Toast提示
-function showToast(message) {
+function showToast(message, duration = 3000) {
     const toast = $('#toast');
     toast.find('.toast-body').text(message);
-    const bsToast = new bootstrap.Toast(toast);
+    const bsToast = new bootstrap.Toast(toast, {
+        delay: duration
+    });
     bsToast.show();
+}
+
+// 高亮显示匹配文本
+function highlightText(text, searchText) {
+    if (!searchText || !text) return text;
+    const regex = new RegExp(`(${searchText})`, 'gi');
+    return text.toString().replace(regex, '<span class="highlight">$1</span>');
 }
 
 // 获取报告列表
 function loadReports(page = 0, searchText = '') {
     window.currentPage = page;  // 更新当前页码
+    // 获取精确/模糊搜索开关状态
+    const exactMatch = document.getElementById('exactMatchSwitch') ? document.getElementById('exactMatchSwitch').checked : true;
     $.ajax({
         url: '/overseas/api/report/list',
         method: 'GET',
         data: {
             page: page,
             size: 10,
-            search: searchText
+            search: searchText,
+            exactMatch: exactMatch
         },
         success: function(response) {
             console.log('API响应:', response);
@@ -43,9 +55,9 @@ function loadReports(page = 0, searchText = '') {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td><input type="checkbox" class="report-checkbox" data-id="${report.id}"></td>
-                        <td>${report.reportNo || '-'}</td>
-                        <td>${report.pmno || '-'}</td>
-                        <td>${report.productName || '-'}</td>
+                        <td>${highlightText(report.reportNo, searchText) || '-'}</td>
+                        <td>${highlightText(report.pmno, searchText) || '-'}</td>
+                        <td>${highlightText(report.productName, searchText) || '-'}</td>
                         <td>
                             <span class="badge ${(report.status || 'PENDING') === 'PENDING' ? 'bg-warning' : 'bg-success'}">
                                 ${(report.status || 'PENDING') === 'PENDING' ? '待处理' : '已处理'}
@@ -64,6 +76,24 @@ function loadReports(page = 0, searchText = '') {
                 
                 // 更新分页
                 updatePagination(page, totalPages);
+
+                // 显示搜索结果提示
+                if (searchText) {
+                    const resultCount = reports.length;
+                    if (resultCount > 0) {
+                        // 显示匹配字段信息
+                        const matchedFields = [];
+                        reports.forEach(report => {
+                            if (report.reportNo && report.reportNo.includes(searchText)) matchedFields.push('报告编号');
+                            if (report.pmno && report.pmno.includes(searchText)) matchedFields.push('报告编码');
+                            if (report.productName && report.productName.includes(searchText)) matchedFields.push('产品名称');
+                        });
+                        const uniqueFields = [...new Set(matchedFields)];
+                        showToast(`搜索完成，找到 ${resultCount} 条记录，匹配字段：${uniqueFields.join('、')}`, 3000);
+                    } else {
+                        showToast('未找到匹配的记录', 2000);
+                    }
+                }
             } else {
                 console.error('API响应格式不正确:', response);
                 showToast('获取报告列表失败：响应格式不正确');
@@ -83,9 +113,25 @@ function loadReports(page = 0, searchText = '') {
     });
 }
 
+// 防抖函数
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // 搜索报告
 function searchReports() {
-    const searchText = document.getElementById('searchInput').value;
+    const searchText = document.getElementById('searchInput').value.trim();
+    if (searchText.length > 0) {
+        showToast('正在搜索...', 1000);
+    }
     loadReports(0, searchText);
 }
 
@@ -169,8 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载初始数据
     loadReports();
     
+    // 使用防抖处理搜索
+    const debouncedSearch = debounce(searchReports, 500);
+    
     // 绑定搜索按钮点击事件
     document.getElementById('searchButton').addEventListener('click', searchReports);
+    
+    // 绑定搜索框输入事件（使用防抖）
+    document.getElementById('searchInput').addEventListener('input', debouncedSearch);
     
     // 绑定搜索框回车事件
     document.getElementById('searchInput').addEventListener('keyup', function(e) {

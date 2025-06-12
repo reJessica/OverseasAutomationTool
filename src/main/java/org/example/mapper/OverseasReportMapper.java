@@ -72,6 +72,58 @@ public interface OverseasReportMapper {
     @Select("SELECT * FROM overseas_reports ORDER BY status = 'PENDING' DESC, created_at DESC LIMIT #{offset}, #{pageSize}")
     List<OverseasReport> findAll(@Param("offset") int offset, @Param("pageSize") int pageSize);
 
+    @Select({
+        "<script>",
+        "SELECT * FROM overseas_reports",
+        "<where>",
+        "<if test='search != null and search != \"\"'>",
+        "<choose>",
+        "<when test='exactMatch'>",
+        "AND (report_no = #{search}",
+        "OR PM_no = #{search}",
+        "OR product_name = #{search}",
+        "OR product_name_en = #{search})",
+        "</when>",
+        "<otherwise>",
+        "AND (report_no LIKE CONCAT('%', #{search}, '%')",
+        "OR PM_no LIKE CONCAT('%', #{search}, '%')",
+        "OR product_name LIKE CONCAT('%', #{search}, '%')",
+        "OR product_name_en LIKE CONCAT('%', #{search}, '%'))",
+        "</otherwise>",
+        "</choose>",
+        "</if>",
+        "</where>",
+        "ORDER BY status = 'PENDING' DESC, created_at DESC",
+        "LIMIT #{offset}, #{pageSize}",
+        "</script>"
+    })
+    List<OverseasReport> searchReports(@Param("search") String search, @Param("exactMatch") boolean exactMatch, @Param("offset") int offset, @Param("pageSize") int pageSize);
+
+    @Select({
+        "<script>",
+        "SELECT COUNT(*) FROM overseas_reports",
+        "<where>",
+        "<if test='search != null and search != \"\"'>",
+        "<choose>",
+        "<when test='exactMatch'>",
+        "AND (report_no = #{search}",
+        "OR PM_no = #{search}",
+        "OR product_name = #{search}",
+        "OR product_name_en = #{search})",
+        "</when>",
+        "<otherwise>",
+        "AND (report_no LIKE CONCAT('%', #{search}, '%')",
+        "OR PM_no LIKE CONCAT('%', #{search}, '%')",
+        "OR product_name LIKE CONCAT('%', #{search}, '%')",
+        "OR product_name_en LIKE CONCAT('%', #{search}, '%'))",
+        "</otherwise>",
+        "</choose>",
+        "</if>",
+        "</where>",
+        "</script>"
+    })
+    long countSearchResults(@Param("search") String search, @Param("exactMatch") boolean exactMatch);
+
     @Select("SELECT COUNT(*) FROM overseas_reports")
     long count();
 

@@ -62,12 +62,22 @@ public class OverseasController {
     @ResponseBody
     public ResponseEntity<?> getReportList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "true") boolean exactMatch) {
         try {
-            logger.info("获取报告列表，页码：{}，每页大小：{}", page, size);
+            logger.info("获取报告列表，页码：{}，每页大小：{}，搜索文本：{}，精确匹配：{}", page, size, search, exactMatch);
             
-            List<OverseasReport> reports = reportService.getAllReports(page, size);
-            long total = reportService.getTotalReports();
+            List<OverseasReport> reports;
+            long total;
+            
+            if (search != null && !search.trim().isEmpty()) {
+                reports = reportService.searchReports(search.trim(), exactMatch, page, size);
+                total = reportService.getTotalSearchResults(search.trim(), exactMatch);
+            } else {
+                reports = reportService.getAllReports(page, size);
+                total = reportService.getTotalReports();
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("reports", reports);
