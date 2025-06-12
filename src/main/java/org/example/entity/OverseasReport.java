@@ -13,6 +13,7 @@ public class OverseasReport {
     private String status;
     private String reportNo;
     private String reportNoEn;
+    private String PMNo;  // 报告编码
     private LocalDate reportDate;
     private LocalDate reportDateEn;
     private String reporter;

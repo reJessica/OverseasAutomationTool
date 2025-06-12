@@ -1040,6 +1040,7 @@ public class SmartSolveAutomationService {
         // 设置报告基本信息
         report.setReportNo(cellText_record_number);
         report.setReportNoEn(cellText_record_number);
+        report.setPMNo("");
         report.setReportDate(LocalDate.now());
         report.setReportDateEn(LocalDate.now());
         report.setReporter("周辉");
