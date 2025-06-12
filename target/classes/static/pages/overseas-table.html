@@ -87,6 +87,7 @@
                         <thead>
                             <tr>
                                 <th>报告编号</th>
+                                <th>报告编码</th>
                                 <th>产品名称</th>
                                 <th>状态</th>
                                 <th>操作</th>
@@ -94,7 +95,8 @@
                         </thead>
                         <tbody>
                             <tr th:each="report : ${reports}">
-                                <td th:text="${report.reportNumber}"></td>
+                                <td th:text="${report.reportNo}"></td>
+                                <td th:text="${report.PM_no}"></td>
                                 <td th:text="${#temporals.format(report.reportDate, 'yyyy-MM-dd')}"></td>
                                 <td>
                                     <span class="badge" th:classappend="${report.status == 'ACTIVE' ? 'bg-success' : 'bg-danger'}"

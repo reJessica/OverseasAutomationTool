@@ -10,8 +10,9 @@ CREATE TABLE overseas_reports (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
-    report_no VARCHAR(50) NOT NULL COMMENT '报告编码',
+    report_no VARCHAR(50) NOT NULL COMMENT '报告编号-抓取',
     report_no_en VARCHAR(50) COMMENT 'Report No.',
+    PM_no VARCHAR(50)  COMMENT '报告编码',
     report_date DATE COMMENT '报告日期',
     report_date_en DATE COMMENT 'Report Date',
     reporter VARCHAR(50) COMMENT '报告人',

@@ -43,6 +43,7 @@ function loadReports(page = 0, searchText = '') {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${report.reportNo || '-'}</td>
+                        <td>${report.PM_no || '-'}</td>
                         <td>${report.productName || '-'}</td>
                         <td>${report.status || '-'}</td>
                         <td>

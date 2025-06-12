@@ -11,7 +11,7 @@ public interface OverseasReportMapper {
     
     @Insert("INSERT INTO overseas_reports (" +
             "report_path, status, created_at, updated_at, " +
-            "report_no, report_no_en, report_date, report_date_en, " +
+            "report_no, report_no_en, PM_no, report_date, report_date_en, " +
             "reporter, reporter_en, customer_name, customer_name_en, " +
             "address, address_en, contact_person, contact_person_en, " +
             "tel, tel_en, occurrence_place, occurrence_place_en, " +
@@ -36,7 +36,7 @@ public interface OverseasReportMapper {
             "no_control_measure_reason, no_control_measure_reason_en" +
             ") VALUES (" +
             "#{reportPath}, #{status}, #{createdAt}, #{updatedAt}, " +
-            "#{reportNo}, #{reportNoEn}, #{reportDate}, #{reportDateEn}, " +
+            "#{reportNo}, #{reportNoEn}, #{PM_no}, #{reportDate}, #{reportDateEn}, " +
             "#{reporter}, #{reporterEn}, #{customerName}, #{customerNameEn}, " +
             "#{address}, #{addressEn}, #{contactPerson}, #{contactPersonEn}, " +
             "#{tel}, #{telEn}, #{occurrencePlace}, #{occurrencePlaceEn}, " +
@@ -78,6 +78,7 @@ public interface OverseasReportMapper {
     @Update("UPDATE overseas_reports SET " +
             "report_path = #{reportPath}, status = #{status}, " +
             "updated_at = #{updatedAt}, report_no = #{reportNo}, report_no_en = #{reportNoEn}, " +
+            "PM_no = #{PM_no}, " +
             "report_date = #{reportDate}, report_date_en = #{reportDateEn}, " +
             "reporter = #{reporter}, reporter_en = #{reporterEn}, " +
             "customer_name = #{customerName}, customer_name_en = #{customerNameEn}, " +
