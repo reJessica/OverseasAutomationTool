@@ -2,6 +2,7 @@
 let currentConfig = null;
 let isEditing = false;
 let statusUpdateInterval = null;
+let reportLinksUpdateInterval = null;  // 新增：报告链接更新定时器
 let lastProcessedCount = 0;  // 用于跟踪上次处理的数据量
 const MAX_LOGS = 100;  // 最大日志条数
 
@@ -31,6 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 恢复服务状态和数据
     restoreServiceStatus();
     restoreSessionData();
+    
+    // 获取报告链接并启动定期更新
+    fetchReportLinks();
+    startReportLinksUpdateInterval();
 
     // 配置管理事件监听
     if (importButton) {
@@ -159,6 +164,21 @@ function stopStatusUpdateInterval() {
         statusUpdateInterval = null;
     }
     lastProcessedCount = 0;
+}
+
+// 启动报告链接更新定时器
+function startReportLinksUpdateInterval() {
+    if (!reportLinksUpdateInterval) {
+        reportLinksUpdateInterval = setInterval(fetchReportLinks, 60000); // 每分钟更新一次
+    }
+}
+
+// 停止报告链接更新定时器
+function stopReportLinksUpdateInterval() {
+    if (reportLinksUpdateInterval) {
+        clearInterval(reportLinksUpdateInterval);
+        reportLinksUpdateInterval = null;
+    }
 }
 
 // 添加日志的函数
@@ -508,6 +528,7 @@ async function startService() {
         
         // 启动状态更新定时器
         startStatusUpdateInterval();
+        startReportLinksUpdateInterval();  // 启动报告链接更新
 
         const result = await startResponse.json();
         if (Array.isArray(result)) {
@@ -546,10 +567,8 @@ async function stopService() {
         localStorage.setItem('serviceStatus', 'stopped');
         
         // 清除状态更新定时器
-        if (statusUpdateInterval) {
-            clearInterval(statusUpdateInterval);
-            statusUpdateInterval = null;
-        }
+        stopStatusUpdateInterval();
+        stopReportLinksUpdateInterval();  // 停止报告链接更新
     } catch (error) {
         console.error('停止服务失败:', error);
         showToast('错误', `停止服务失败: ${error.message}`, 'danger');
