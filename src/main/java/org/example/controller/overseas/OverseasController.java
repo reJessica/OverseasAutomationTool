@@ -39,6 +39,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import java.nio.file.StandardCopyOption;
+import java.time.format.DateTimeFormatter;
 
 @Controller
 @RequestMapping("/overseas")
@@ -329,79 +331,90 @@ public class OverseasController {
 
     @PostMapping("/api/report/batch-export")
     public void batchExport(@RequestBody List<Long> ids, HttpServletResponse response) throws IOException {
-        List<OverseasReport> reports = reportService.findByIds(ids);
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        String fileName = URLEncoder.encode("报告批量导出.xlsx", "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-        ServletOutputStream out = response.getOutputStream();
+        try {
+            List<OverseasReport> reports = reportService.findByIds(ids);
+            
+            // 读取模板文件
+            String templatePath = "D:\\1\\OverseasAutomationTool\\src\\main\\resources\\template_example.xlsx";
+            File templateFile = new File(templatePath);
+            if (!templateFile.exists()) {
+                throw new IOException("模板文件不存在：" + templatePath);
+            }
 
-        // 1. 第一行：分组大类
-        List<String> groupRow = Arrays.asList(
-            "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况", "医疗器械情况",
-            "医疗器械情况", "医疗器械情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况", "不良事件情况",
-            "不良事件情况", "不良事件情况", "使用情况", "使用情况", "使用情况", "使用情况", "使用情况", "事件调查", "事件调查", "评价结果", "评价结果", "评价结果", "评价结果", "控制措施", "控制措施", "控制措施"
-        );
-        // 2. 第二行：表头
-        List<String> headerRow = Arrays.asList(
-            "产品名称*", "注册证编号*", "产地*", "管理类别*", "产品类别*", "产品批号*", "产品编号*", "UDI",
-            "生产日期(yyyy-MM-dd)", "有效期至(yyyy-MM-dd)", "事件发生日期*(yyyy-MM-dd)", "发现或获知日期*(yyyy-MM-dd)",
-            "伤害*", "伤害表现*", "姓名", "出生日期(yyyy-MM-dd)", "年龄单位", "年龄", "性别", "病历号", "既往病史",
-            "器械故障表现*", "预期治疗疾病或作用", "器械使用日期*(yyyy-MM-dd)", "使用场所*", "场所名称*", "使用过程*",
-            "合并用药/械情况说明", "是否展开了调查*", "调查情况*", "关联性评价*", "事件原因分析*", "是否需要开展产品风险评价*",
-            "计划提交时间(yyyy-MM-dd)", "是否采取了控制措施*", "具体控制措施描述*", "未采取控制措施原因*"
-        );
+            // 创建临时文件
+            File tempFile = File.createTempFile("report_export_", ".xlsx");
+            Files.copy(templateFile.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        List<List<String>> dataList = new ArrayList<>();
-        dataList.add(groupRow);
-        dataList.add(headerRow);
+            // 设置响应头
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String fileName = URLEncoder.encode("报告批量导出_" + currentDate + ".xlsx", "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
 
-        // 3. 数据行
-        for (OverseasReport r : reports) {
-            dataList.add(Arrays.asList(
-                n(r.getProductName()), n(r.getRegistrationNo()), n(r.getOriginCountry()), n(r.getClassType()), n(r.getProductType()),
-                n(r.getProductLot()), n(r.getProductNo()), n(r.getUdi()),
-                d(r.getManufacturingDate()), d(r.getExpirationDate()), d(r.getEventOccurrenceDate()), d(r.getKnowledgeDate()),
-                n(r.getInjuryType()), n(r.getInjury()), n(r.getPatientName()), d(r.getBirthDate()), n(r.getAgeEn()), n(r.getAge()), n(r.getGender()), n(r.getMedicalRecordNo()), n(r.getMedicalHistory()),
-                n(r.getDeviceMalfunctionDesc()), n(r.getDiseaseIntended()), d(r.getUsageDate()), n(r.getUsageSite()), n(r.getInstitutionName()), n(r.getUsageProcess()),
-                n(r.getDrugDeviceCombDesc()), n(r.getInvestigationFlag()), n(r.getInvestigationDesc()), n(r.getRelativeEvaluation()), n(r.getEventReasonAnalysis()), n(r.getNeedRiskAssessment()),
-                d(r.getPlanSubmitDate()), n(r.getHasControlMeasure()), n(r.getControlMeasureDetails()), n(r.getNoControlMeasureReason())
-            ));
-        }
+            // 使用临时文件创建工作簿
+            try (ServletOutputStream out = response.getOutputStream()) {
+                Workbook workbook = WorkbookFactory.create(tempFile);
+                Sheet sheet = workbook.getSheetAt(0);
 
-        // 4. 合并单元格
-        // 每个大类的起止列（示例，需根据实际表头调整）
-        List<int[]> mergeRegions = Arrays.asList(
-            new int[]{0, 9},   // 医疗器械情况
-            new int[]{10, 21}, // 不良事件情况
-            new int[]{22, 27}, // 使用情况
-            new int[]{28, 29}, // 事件调查
-            new int[]{30, 33}, // 评价结果
-            new int[]{34, 36}  // 控制措施
-        );
+                // 从第三行开始填写数据
+                int startRow = 2; // 第三行（索引从0开始）
+                for (int i = 0; i < reports.size(); i++) {
+                    OverseasReport report = reports.get(i);
+                    int currentRow = startRow + i;
 
-        // 写入Excel
-        EasyExcel.write(out)
-            .sheet("报告导出")
-            .registerWriteHandler(new com.alibaba.excel.write.handler.SheetWriteHandler() {
-                @Override
-                public void beforeSheetCreate(com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder writeWorkbookHolder, com.alibaba.excel.write.metadata.holder.WriteSheetHolder writeSheetHolder) {}
-                @Override
-                public void afterSheetCreate(com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder writeWorkbookHolder, com.alibaba.excel.write.metadata.holder.WriteSheetHolder writeSheetHolder) {
-                    org.apache.poi.ss.usermodel.Sheet sheet = writeSheetHolder.getSheet();
-                    // 合并大类单元格
-                    for (int[] region : mergeRegions) {
-                        sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, region[0], region[1]));
-                    }
-                    // 设置列宽
-                    for (int i = 0; i < headerRow.size(); i++) {
-                        sheet.setColumnWidth(i, 20 * 256); // 20字符宽
-                    }
+                    // 填写数据
+                    fillCell(sheet, currentRow, 0, n(report.getProductName())); // 产品名称
+                    fillCell(sheet, currentRow, 1, n(report.getRegistrationNo())); // 注册证编号
+                    fillCell(sheet, currentRow, 2, n(report.getOriginCountry())); // 产地
+                    fillCell(sheet, currentRow, 3, n(report.getClassType())); // 管理类别
+                    fillCell(sheet, currentRow, 4, n(report.getProductType())); // 产品类别
+                    fillCell(sheet, currentRow, 5, n(report.getProductLot())); // 产品批号
+                    fillCell(sheet, currentRow, 6, n(report.getProductNo())); // 产品编号
+                    fillCell(sheet, currentRow, 7, n(report.getUdi())); // UDI
+                    fillCell(sheet, currentRow, 8, d(report.getManufacturingDate())); // 生产日期
+                    fillCell(sheet, currentRow, 9, d(report.getExpirationDate())); // 有效期至
+                    fillCell(sheet, currentRow, 10, d(report.getEventOccurrenceDate())); // 事件发生日期
+                    fillCell(sheet, currentRow, 11, d(report.getKnowledgeDate())); // 发现或获知日期
+                    fillCell(sheet, currentRow, 12, n(report.getInjuryType())); // 伤害
+                    fillCell(sheet, currentRow, 13, n(report.getInjury())); // 伤害表现
+                    fillCell(sheet, currentRow, 14, n(report.getPatientName())); // 姓名
+                    fillCell(sheet, currentRow, 15, d(report.getBirthDate())); // 出生日期
+                    fillCell(sheet, currentRow, 16, n(report.getAgeEn())); // 年龄单位
+                    fillCell(sheet, currentRow, 17, n(report.getAge())); // 年龄
+                    fillCell(sheet, currentRow, 18, n(report.getGender())); // 性别
+                    fillCell(sheet, currentRow, 19, n(report.getMedicalRecordNo())); // 病历号
+                    fillCell(sheet, currentRow, 20, n(report.getMedicalHistory())); // 既往病史
+                    fillCell(sheet, currentRow, 21, n(report.getDeviceMalfunctionDesc())); // 器械故障表现
+                    fillCell(sheet, currentRow, 22, n(report.getDiseaseIntended())); // 预期治疗疾病或作用
+                    fillCell(sheet, currentRow, 23, d(report.getUsageDate())); // 器械使用日期
+                    fillCell(sheet, currentRow, 24, n(report.getUsageSite())); // 使用场所
+                    fillCell(sheet, currentRow, 25, n(report.getInstitutionName())); // 场所名称
+                    fillCell(sheet, currentRow, 26, n(report.getUsageProcess())); // 使用过程
+                    fillCell(sheet, currentRow, 27, n(report.getDrugDeviceCombDesc())); // 合并用药/械情况说明
+                    fillCell(sheet, currentRow, 28, n(report.getInvestigationFlag())); // 是否展开了调查
+                    fillCell(sheet, currentRow, 29, n(report.getInvestigationDesc())); // 调查情况
+                    fillCell(sheet, currentRow, 30, n(report.getRelativeEvaluation())); // 关联性评价
+                    fillCell(sheet, currentRow, 31, n(report.getEventReasonAnalysis())); // 事件原因分析
+                    fillCell(sheet, currentRow, 32, n(report.getNeedRiskAssessment())); // 是否需要开展产品风险评价
+                    fillCell(sheet, currentRow, 33, d(report.getPlanSubmitDate())); // 计划提交时间
+                    fillCell(sheet, currentRow, 34, n(report.getHasControlMeasure())); // 是否采取了控制措施
+                    fillCell(sheet, currentRow, 35, n(report.getControlMeasureDetails())); // 具体控制措施描述
+                    fillCell(sheet, currentRow, 36, n(report.getNoControlMeasureReason())); // 未采取控制措施原因
                 }
-            })
-            .doWrite(dataList);
 
-        out.flush();
-        out.close();
+                // 写入输出流
+                workbook.write(out);
+                workbook.close();
+            } finally {
+                // 删除临时文件
+                tempFile.delete();
+            }
+        } catch (Exception e) {
+            logger.error("批量导出报告失败", e);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\":\"导出失败：" + e.getMessage() + "\"}");
+        }
     }
 
     @PostMapping("/api/report/export-template")
@@ -414,15 +427,33 @@ public class OverseasController {
                 throw new IOException("模板文件不存在：" + templatePath);
             }
 
+            // 创建临时文件
+            File tempFile = File.createTempFile("report_export_", ".xlsx");
+            Files.copy(templateFile.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
             // 设置响应头
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            String fileName = URLEncoder.encode("报告详情.xlsx", "UTF-8").replaceAll("\\+", "%20");
-            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            
+            // 获取报告编号和PM编号
+            String reportNo = (String) reportData.get("report_no");
+            String pmNo = (String) reportData.get("pm_no");
+            // 获取当前日期
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            
+            // 构建文件名
+            String fileName = String.format("%s_%s_%s.xlsx", 
+                reportNo != null ? reportNo : "未知报告编号",
+                pmNo != null ? pmNo : "未知PM编号",
+                currentDate);
+            
+            // URL编码文件名
+            String encodedFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-Disposition", "attachment; filename=" + encodedFileName);
 
             // 使用EasyExcel写入数据
             try (ServletOutputStream out = response.getOutputStream()) {
-                // 创建一个新的Excel文件
-                Workbook workbook = WorkbookFactory.create(templateFile);
+                // 使用临时文件创建工作簿
+                Workbook workbook = WorkbookFactory.create(tempFile);
                 Sheet sheet = workbook.getSheetAt(0);
 
                 // 填充数据
@@ -445,7 +476,9 @@ public class OverseasController {
                 fillCell(sheet, 32, 2, (String)reportData.get("product_name_en")); // 产品名称
                 fillCell(sheet, 34, 2, (String)reportData.get("registration_no")); // 注册证编号
                 fillCell(sheet, 37, 2, (String)reportData.get("module")); // 型号
+                fillCell(sheet, 38, 2, (String)reportData.get("module_en")); // 型号
                 fillCell(sheet, 40, 2, (String)reportData.get("product_package")); // 规格
+                fillCell(sheet, 41, 2, (String)reportData.get("product_package_en")); // 规格
                 fillCell(sheet, 43, 2, (String)reportData.get("origin_country")); // 产地
                 fillCell(sheet, 44, 2, (String)reportData.get("origin_country_en")); // 产地
                 fillCell(sheet, 46, 2, (String)reportData.get("class_type")); // 管理类别
@@ -457,7 +490,7 @@ public class OverseasController {
                 fillCell(sheet, 58, 2, (String)reportData.get("udi")); // UDI
                 fillCell(sheet, 60, 2, (String)reportData.get("manufacturing_date")); // 生产日期
                 fillCell(sheet, 63, 2, (String)reportData.get("expiration_date")); // 有效期至
-                
+
                 // 不良事件情况
                 fillCell(sheet, 68, 2, (String)reportData.get("event_occurrence_date")); // 事件发生日期
                 fillCell(sheet, 71, 2, (String)reportData.get("knowledge_date")); // 发现或获知日期
@@ -466,8 +499,11 @@ public class OverseasController {
                 fillCell(sheet, 77, 2, (String)reportData.get("injury")); // 伤害表现
                 fillCell(sheet, 78, 2, (String)reportData.get("injury_en")); // 伤害表现
                 fillCell(sheet, 80, 2, (String)reportData.get("device_malfunction_desc")); // 器械故障表现
-                fillCell(sheet, 81, 2, (String)reportData.get("device_malfunction_desc_en")); // 器械故障表现fillCell(sheet, 81, 2, (String)reportData.get("device_malfunction_desc_en")); // 器械故障表现
+                fillCell(sheet, 81, 2, (String)reportData.get("device_malfunction_desc_en")); // 器械故障表现
+
+                // 患者信息
                 fillCell(sheet, 83, 2, (String)reportData.get("patient_name")); // 姓名
+                fillCell(sheet, 84, 2, (String)reportData.get("patient_name_en")); // 姓名
                 fillCell(sheet, 86, 2, (String)reportData.get("birth_date")); // 出生日期
                 fillCell(sheet, 89, 2, (String)reportData.get("age")); // 年龄
                 fillCell(sheet, 90, 2, (String)reportData.get("age_en")); // 年龄
@@ -477,7 +513,7 @@ public class OverseasController {
                 fillCell(sheet, 96, 2, (String)reportData.get("medical_record_no_en")); // 病历号
                 fillCell(sheet, 98, 2, (String)reportData.get("medical_history")); // 既往病史
                 fillCell(sheet, 99, 2, (String)reportData.get("medical_history_en")); // 既往病史
-                
+
                 // 使用情况
                 fillCell(sheet, 102, 2, (String)reportData.get("disease_intended")); // 预期治疗疾病或作用
                 fillCell(sheet, 103, 2, (String)reportData.get("disease_intended_en")); // 预期治疗疾病或作用
@@ -490,23 +526,22 @@ public class OverseasController {
                 fillCell(sheet, 115, 2, (String)reportData.get("usage_process_en")); // 使用过程
                 fillCell(sheet, 117, 2, (String)reportData.get("drug_device_comb_desc")); // 合并用药/械情况说明
                 fillCell(sheet, 118, 2, (String)reportData.get("drug_device_comb_desc_en")); // 合并用药/械情况说明
-                
+
                 // 事件调查
                 fillCell(sheet, 122, 2, (String)reportData.get("investigation_flag")); // 是否开展了调查
                 fillCell(sheet, 123, 2, (String)reportData.get("investigation_flag_en")); // 是否开展了调查
-                 fillCell(sheet, 125, 2, (String)reportData.get("investigation_desc")); // 调查情况
+                fillCell(sheet, 125, 2, (String)reportData.get("investigation_desc")); // 调查情况
                 fillCell(sheet, 126, 2, (String)reportData.get("investigation_desc_en")); // 调查情况
-                
+
                 // 评价结果
-                fillCell(sheet, 130, 2, (String)reportData.get("relative_evaluation")); // 关联性评价\
+                fillCell(sheet, 130, 2, (String)reportData.get("relative_evaluation")); // 关联性评价
                 fillCell(sheet, 131, 2, (String)reportData.get("relative_evaluation_en")); // 关联性评价
                 fillCell(sheet, 133, 2, (String)reportData.get("event_reason_analysis")); // 事件原因分析
                 fillCell(sheet, 134, 2, (String)reportData.get("event_reason_analysis_en")); // 事件原因分析
                 fillCell(sheet, 136, 2, (String)reportData.get("need_risk_assessment")); // 是否需要开展产品风险评价
                 fillCell(sheet, 137, 2, (String)reportData.get("need_risk_assessment_en")); // 是否需要开展产品风险评价
                 fillCell(sheet, 139, 2, (String)reportData.get("plan_submit_date")); // 计划提交时间
-                fillCell(sheet, 140, 2, (String)reportData.get("plan_submit_date_en")); // 计划提交时间
-                
+
                 // 控制措施
                 fillCell(sheet, 144, 2, (String)reportData.get("has_control_measure")); // 是否已采取控制措施
                 fillCell(sheet, 145, 2, (String)reportData.get("has_control_measure_en")); // 是否已采取控制措施
@@ -515,10 +550,12 @@ public class OverseasController {
                 fillCell(sheet, 150, 2, (String)reportData.get("no_control_measure_reason")); // 未采取控制措施原因
                 fillCell(sheet, 151, 2, (String)reportData.get("no_control_measure_reason_en")); // 未采取控制措施原因
 
-
                 // 写入输出流
                 workbook.write(out);
                 workbook.close();
+            } finally {
+                // 删除临时文件
+                tempFile.delete();
             }
         } catch (Exception e) {
             logger.error("导出报告失败", e);

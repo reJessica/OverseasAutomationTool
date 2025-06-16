@@ -6,10 +6,25 @@ const ExportService = {
         const formData = new FormData(document.getElementById('reportForm'));
         const data = {};
         formData.forEach((value, key) => {
-            data[key] = value;
+            // 统一转换为小写，确保与后端字段名匹配
+            data[key.toLowerCase()] = value;
             console.log(`获取到字段 ${key}: ${value}`);
         });
         console.log('导出数据:', data);
+
+        // 获取报告编号和PM编号
+        const reportNo = $('input[name="report_no"]').val() || '未知报告编号';
+        const pmNo = $('input[name="PM_no"]').val() || '未知PM编号';
+        
+        console.log('报告编号:', reportNo);
+        console.log('PM编号:', pmNo);
+        
+        // 获取当前日期
+        const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '-');
+        
+        // 构建文件名
+        const fileName = `${reportNo}_${pmNo}_${currentDate}.xlsx`;
+        console.log('生成的文件名:', fileName);
 
         // 发送请求到后端，使用模板生成Excel
         $.ajax({
@@ -25,7 +40,7 @@ const ExportService = {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = "报告详情.xlsx";
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -41,11 +56,23 @@ const ExportService = {
 
     // 导出为Word
     exportToWord: function() {
+        console.log('开始导出Word...');
         const formData = new FormData(document.getElementById('reportForm'));
         const data = {};
         formData.forEach((value, key) => {
             data[key] = value;
+            console.log(`获取到字段 ${key}: ${value}`);
         });
+        console.log('导出数据:', data);
+
+        // 获取报告编号和PM编号
+        const reportNo = data.report_no || '未知报告编号';
+        const pmNo = data.pm_no || '未知PM编号';
+        // 获取当前日期
+        const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '-');
+        
+        // 构建文件名
+        const fileName = `${reportNo}_${pmNo}_${currentDate}.docx`;
 
         // 创建文档
         const doc = new docx.Document({
@@ -144,7 +171,7 @@ const ExportService = {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "报告详情.docx";
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -368,7 +395,119 @@ $(document).ready(function() {
             console.log(`获取到字段 ${key}: ${value}`);
         });
         console.log('导出数据:', data);
-        ExportService.exportToWord(data);
+
+        // 获取报告编号和PM编号
+        const reportNo = data.report_no || '未知报告编号';
+        const pmNo = data.pm_no || '未知PM编号';
+        // 获取当前日期
+        const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '-');
+        
+        // 构建文件名
+        const fileName = `${reportNo}_${pmNo}_${currentDate}.docx`;
+
+        // 创建文档
+        const doc = new docx.Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new docx.Paragraph({
+                        text: "报告详情",
+                        heading: docx.HeadingLevel.HEADING_1,
+                        alignment: docx.AlignmentType.CENTER
+                    }),
+                    new docx.Paragraph({
+                        text: "报告基本情况",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("报告编号", data.report_no, "Report No.", data.report_no_en),
+                    this.createInfoParagraph("报告日期", data.report_date, "Report Date", data.report_date_en),
+                    this.createInfoParagraph("报告人", data.reporter, "Reporter", data.reporter_en),
+                    this.createInfoParagraph("单位名称", data.customer_name, "Customer name", data.customer_name_en),
+                    this.createInfoParagraph("联系地址", data.address, "Address", data.address_en),
+                    this.createInfoParagraph("联系人", data.contact_person, "Contact Person", data.contact_person_en),
+                    this.createInfoParagraph("联系电话", data.tel, "Telphone No.", data.tel_en),
+                    this.createInfoParagraph("发生地", data.occurrence_place, "Occurrence place", data.occurrence_place_en),
+                    new docx.Paragraph({
+                        text: "医疗器械情况",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("产品名称", data.product_name, "Product Name", data.product_name_en),
+                    this.createInfoParagraph("注册证编号", data.registration_no, "Registration no.", data.registration_no_en),
+                    this.createInfoParagraph("型号", data.module, "Module", data.module_en),
+                    this.createInfoParagraph("规格", data.product_package, "Package", data.product_package_en),
+                    this.createInfoParagraph("产地", data.origin_country, "Origin of Country", data.origin_country_en),
+                    this.createInfoParagraph("管理类别", data.class_type, "Class Type", data.class_type_en),
+                    this.createInfoParagraph("产品类别", data.product_type, "Product type", data.product_type_en),
+                    this.createInfoParagraph("产品批号", data.product_lot, "Product Lot", data.product_lot_en),
+                    this.createInfoParagraph("产品编号", data.product_no, "Product No.", data.product_no_en),
+                    this.createInfoParagraph("UDI", data.udi, "UDI", data.udi_en),
+                    this.createInfoParagraph("生产日期", data.manufacturing_date, "Manufacturing Date", data.manufacturing_date_en),
+                    this.createInfoParagraph("有效期至", data.expiration_date, "Expiration Date", data.expiration_date_en),
+                    new docx.Paragraph({
+                        text: "不良事件情况",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("事件发生日期", data.event_occurrence_date, "Event Occurrence Date", data.event_occurrence_date_en),
+                    this.createInfoParagraph("发现或获知日期", data.knowledge_date, "Knowledge Date", data.knowledge_date_en),
+                    this.createInfoParagraph("伤害程度", data.injury_type, "Injury Type", data.injury_type_en),
+                    this.createInfoParagraph("伤害表现", data.injury, "Injury", data.injury_en),
+                    this.createInfoParagraph("器械故障表现", data.device_malfunction_desc, "Device Malfunction Description", data.device_malfunction_desc_en),
+                    new docx.Paragraph({
+                        text: "患者信息",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("姓名", data.patient_name, "Patient Name", data.patient_name_en),
+                    this.createInfoParagraph("出生日期", data.birth_date, "Date of Birth", data.birth_date_en),
+                    this.createInfoParagraph("年龄", data.age, "Age", data.age_en),
+                    this.createInfoParagraph("性别", data.gender, "Gender", data.gender_en),
+                    this.createInfoParagraph("病历号", data.medical_record_no, "Medical Record No.", data.medical_record_no_en),
+                    this.createInfoParagraph("既往病史", data.medical_history, "Medical History", data.medical_history_en),
+                    new docx.Paragraph({
+                        text: "使用情况",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("预期治疗疾病或作用", data.disease_intended, "Disease intended to treat or effect", data.disease_intended_en),
+                    this.createInfoParagraph("器械使用日期", data.usage_date, "Usage Date", data.usage_date_en),
+                    this.createInfoParagraph("使用场所", data.usage_site, "Usage site", data.usage_site_en),
+                    this.createInfoParagraph("场所名称", data.institution_name, "Institution Name", data.institution_name_en),
+                    this.createInfoParagraph("使用过程", data.usage_process, "Usage Process", data.usage_process_en),
+                    this.createInfoParagraph("合并用药/械情况说明", data.drug_device_comb_desc, "Drug/device Combination Description", data.drug_device_comb_desc_en),
+                    new docx.Paragraph({
+                        text: "事件调查",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("是否开展了调查", data.investigation_flag, "If carry out investigation", data.investigation_flag_en),
+                    this.createInfoParagraph("调查情况", data.investigation_desc, "Investigation description", data.investigation_desc_en),
+                    new docx.Paragraph({
+                        text: "评价结果",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("关联性评价", data.relative_evaluation, "Relative Evaluation", data.relative_evaluation_en),
+                    this.createInfoParagraph("事件原因分析", data.event_reason_analysis, "Event Reason Analysis", data.event_reason_analysis_en),
+                    this.createInfoParagraph("是否需要开展产品风险评价", data.need_risk_assessment, "If need initiate Product Risk Assessment", data.need_risk_assessment_en),
+                    this.createInfoParagraph("计划提交时间", data.plan_submit_date, "Plan submission Date", data.plan_submit_date_en),
+                    new docx.Paragraph({
+                        text: "控制措施",
+                        heading: docx.HeadingLevel.HEADING_2
+                    }),
+                    this.createInfoParagraph("是否已采取控制措施", data.has_control_measure, "If has taken control measure", data.has_control_measure_en),
+                    this.createInfoParagraph("具体控制措施", data.control_measure_details, "Control measure details", data.control_measure_details_en),
+                    this.createInfoParagraph("未采取控制措施原因", data.no_control_measure_reason, "No control measure reason", data.no_control_measure_reason_en)
+                ]
+            }]
+        });
+
+        // 生成文档
+        docx.Packer.toBlob(doc).then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
     };
 });
 

@@ -615,8 +615,6 @@ public class SmartSolveAutomationService {
     //        WebElement ageLabel = webDriver.findElement(By.xpath("/html/body/form/div[7]/div/div[2]/div/div[1]/div/div/div[3]/div/div/div/div/div[3]/fieldset/div[1]/div/ul/li[1]/div/label"));
     //        System.out.println(ageLabel.getText());
         // 在记录开头插入 ID
-        currentRow.add(0, String.valueOf(id));
-        currentRowEnglish.add(0, String.valueOf(id));
         // 第一到五列 暂时填充为空字符串
         currentRow.add(""); //1 产品名称
         currentRowEnglish.add("");
