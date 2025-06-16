@@ -82,7 +82,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>报告详情</h2>
             <div class="btn-group">
-                <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                <button type="button" class="btn btn-success" id="exportExcelBtn">
                     <i class="bi bi-file-earmark-excel me-1"></i>导出Excel
                 </button>
                 <button type="button" class="btn btn-primary" onclick="exportToWord()">
@@ -513,16 +513,10 @@
                             <input type="text" class="form-control" name="need_risk_assessment_en">
                         </div>
                     </div>
-                    <div class="form-row-pair">
                         <div>
                             <label class="form-label">计划提交时间</label>
                             <input type="date" class="form-control" name="plan_submit_date">
                         </div>
-                        <div>
-                            <label class="form-label">Plan submission Date</label>
-                            <input type="date" class="form-control" name="plan_submit_date_en">
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- 控制措施 -->

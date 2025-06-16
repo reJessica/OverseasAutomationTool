@@ -2,210 +2,41 @@
 const ExportService = {
     // 导出为Excel
     exportToExcel: function() {
+        console.log('开始导出Excel...');
         const formData = new FormData(document.getElementById('reportForm'));
         const data = {};
         formData.forEach((value, key) => {
             data[key] = value;
+            console.log(`获取到字段 ${key}: ${value}`);
         });
+        console.log('导出数据:', data);
 
-        // 创建工作簿
-        const wb = XLSX.utils.book_new();
-        
-        // 准备数据
- // 准备数据
- const wsData = [
-    ['报告基本情况','','Report Basic Situation'],
-    [''],
-    ['报告编号', '', data.report_no],
-    ['Report No.', '', ''],
-    [''],
-    ['报告日期', '', data.report_date],
-    ['Report Date', '', ''],
-    [''],
-    ['报告人', '', data.reporter],
-    ['Reporter', '', data.reporter_en],
-    [''],
-    ['单位名称', '', data.customer_name],
-    ['Customer name', '', data.customer_name_en],
-    [''],
-    ['联系地址', '', data.address],
-    ['Address', '', data.address_en],
-    [''],
-    ['联系人', '', data.contact_person],
-    ['Contact Person', '', data.contact_person_en],
-    [''],
-    ['联系电话', '', data.tel],
-    ['Telphone No.', '', ''],
-    [''],
-    ['发生地', '', data.occurrence_place],
-    ['Occurrence place', '', data.occurrence_place_en],
-    [''],
-    ['医疗器械情况','','Medical Device Information'],
-    [''],
-    ['产品名称', '', data.product_name],
-    ['Product Name', '', data.product_name_en],
-    [''],
-    ['注册证编号', '', data.registration_no],
-    ['Registration no.', '', ''],
-    [''],
-    ['型号', '', data.module],
-    ['Module', '', data.module_en],
-    [''],
-    ['规格', '', data.product_package],
-    ['Package', '', data.product_package_en],
-    [''],
-    ['产地', '', data.origin_country],
-    ['Origin of Country', '', data.origin_country_en],
-    [''],
-    ['管理类别', '', data.class_type],
-    ['Class Type', '', data.class_type_en],
-    [''],
-    ['产品类别', '', data.product_type],
-    ['Product type', '', data.product_type_en],
-    [''],
-    ['产品批号', '', data.product_lot],
-    ['Product Lot', '', data.product_lot_en],
-    [''],
-    ['产品编号', '', data.product_no],
-    ['Product No.', '', data.product_no_en],
-    [''],
-    ['UDI', '', data.udi],
-    ['生产日期', '', data.manufacturing_date],
-    ['Manufacturing Date', '', ''],
-    [''],
-    ['有效期至', '', data.expiration_date],
-    ['Expiration Date', '', ''],
-    [''],
-    ['不良事件情况','','Adverse Event Information'],
-    [''],
-    ['事件发生日期', '', data.event_occurrence_date],
-    ['Event Occurrence Date', '', ''],
-    [''],
-    ['发现或获知日期', '', data.knowledge_date],
-    ['Knowledge Date', '', ''],
-    [''],
-    ['伤害程度', '', data.injury_type],
-    ['Injury Type', '', data.injury_type_en],
-    [''],
-    ['伤害表现', '', data.injury],
-    ['Injury', '', data.injury_en],
-    [''],
-    ['器械故障表现', '', data.device_malfunction_desc],
-    ['Device Malfunction Description', '', data.device_malfunction_desc_en],
-    [''],
-    ['姓名', '', data.patient_name],
-    ['Patient Name', '', data.patient_name_en],
-    [''],
-    ['出生日期', '', data.birth_date],
-    ['Date of Birth', '', ''],
-    [''],
-    ['年龄', '', data.age],
-    ['Age', '', data.age_en],
-    [''],
-    ['性别', '', data.gender],
-    ['Gender', '', data.gender_en],
-    [''],
-    ['病历号', '', data.medical_record_no],
-    ['Medical Record No.', '', ''],
-    [''],
-    ['既往病史', '', data.medical_history],
-    ['Medical History', '', data.medical_history_en],
-    [''],
-    ['使用情况','','Usage Details'],
-    [''],
-    ['预期治疗疾病或作用', '', data.disease_intended],
-    ['Disease intended to treat or effect', '', data.disease_intended_en],
-    [''],
-    ['器械使用日期', '', data.usage_date],
-    ['Usage Date', '', ''],
-    [''],
-    ['使用场所', '', data.usage_site],
-    ['Usage site', '', data.usage_site_en],
-    [''],
-    ['场所名称', '', data.institution_name],
-    ['Institution Name', '', data.institution_name_en],
-    [''],
-    ['使用过程', '', data.usage_process],
-    ['Usage Process', '', data.usage_process_en],
-    [''],
-    ['合并用药/械情况说明','','Drug/device Combination Description'],
-    ['Drug/device Combination Description', '',data.drug_device_comb_desc_en],
-    [''],
-    ['事件调查','','Event Investigation'],
-    [''],
-    ['是否开展了调查', '', data.investigation_flag],
-    ['If carry out investigation', '', data.investigation_flag_en],
-    [''],
-    ['调查情况', '', data.investigation_desc],
-    ['Investigation description', '', data.investigation_desc_en],
-    [''],
-    ['评价结果','','Evaluation Results'],
-    [''],
-    ['关联性评价', '', data.relative_evaluation],
-    ['Relative Evaluation', '', data.relative_evaluation_en],
-    [''],
-    ['事件原因分析', '', data.event_reason_analysis,],
-    ['Event Reason Analysis', '', data.event_reason_analysis_en],
-    [''],
-    ['是否需要开展产品风险评价', '', data.need_risk_assessment],
-    ['If need initiate Product Risk Assessment', '', data.need_risk_assessment_en],
-    [''],
-    ['计划提交时间', '', data.plan_submit_date],
-    ['Plan submission Date', '', ''],
-    [''],
-    ['控制措施','','Control Measures'],
-    [''],
-    ['是否已采取控制措施', '', data.has_control_measure],
-    ['If has taken control measure', '', data.has_control_measure_en],
-    [''],
-    ['具体控制措施', '', data.control_measure_details],
-    ['Control measure details', '', data.control_measure_details_en],
-    [''],
-    ['未采取控制措施原因', '', data.no_control_measure_reason],
-    ['No control measure reason', '', data.no_control_measure_reason_en]
-];
-
-        // 创建工作表
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        
-        // 设置列宽
-        const colWidths = [
-            { wch: 20 }, // 中文标签列
-            { wch: 30 }, // 中文内容列
-            { wch: 20 }, // 英文标签列
-            { wch: 30 }  // 英文内容列
-        ];
-        ws['!cols'] = colWidths;
-        
-        // 设置三列表格标题行样式
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        for (let R = 0; R <= range.e.r; R++) {
-            const cell0 = ws[XLSX.utils.encode_cell({r: R, c: 0})];
-            const cell1 = ws[XLSX.utils.encode_cell({r: R, c: 1})];
-            const cell2 = ws[XLSX.utils.encode_cell({r: R, c: 2})];
-            // 判断是否为标题行：第一列和第三列有内容，第二列为空
-            if (
-                cell0 && cell0.v && cell2 && cell2.v &&
-                (!cell1 || cell1.v === '')
-            ) {
-                for (let C = 0; C < 3; C++) {
-                    const cell = ws[XLSX.utils.encode_cell({r: R, c: C})];
-                    if (cell) {
-                        cell.s = {
-                            font: { bold: true },
-                            fill: { fgColor: { rgb: "E0E0E0" } } // 浅灰色
-                        };
-                    }
-                }
+        // 发送请求到后端，使用模板生成Excel
+        $.ajax({
+            url: '/overseas/api/report/export-template',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(blob) {
+                // 创建下载链接
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "报告详情.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showToast('Excel导出成功', 'success');
+            },
+            error: function(xhr, status, error) {
+                console.error('导出失败:', error);
+                showToast('导出失败：' + (xhr.responseJSON?.message || '未知错误'), 'error');
             }
-        }
-        
-        // 添加工作表到工作簿
-        XLSX.utils.book_append_sheet(wb, ws, "报告详情");
-        
-        // 导出文件
-        XLSX.writeFile(wb, "报告详情.xlsx");
-        showToast('Excel导出成功', 'success');
+        });
     },
 
     // 导出为Word
@@ -444,6 +275,7 @@ $(document).ready(function() {
         $('input[name="address_en"]').val(addressEn);
         $('input[name="occurrence_place"]').val(occurrencePlace);
         $('input[name="occurrence_place_en"]').val(occurrencePlaceEn);
+        
     });
 
     // 表单提交处理
@@ -522,17 +354,10 @@ $(document).ready(function() {
     });
     
     // 导出功能
-    window.exportToExcel = function() {
-        console.log('开始导出Excel...');
-        const formData = new FormData(document.getElementById('reportForm'));
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-            console.log(`获取到字段 ${key}: ${value}`);
-        });
-        console.log('导出数据:', data);
-        ExportService.exportToExcel(data);
-    };
+    $('#exportExcelBtn').on('click', function() {
+        console.log('点击导出Excel按钮');
+        ExportService.exportToExcel();
+    });
     
     window.exportToWord = function() {
         console.log('开始导出Word...');
@@ -553,19 +378,15 @@ function loadReportDetail(id) {
         url: '/overseas/api/report/info/' + id,
         method: 'GET',
         success: function(response) {
-            console.log('获取到的原始响应:', response);  // 添加日志
+            console.log('获取到的原始响应:', response);
             
-            // 直接使用响应数据
             const report = response;
-            console.log('获取到的报告数据:', report);  // 添加日志
-            console.log('PM_no字段值:', report.pmno);  // 添加PM_no字段的日志
+            console.log('获取到的报告数据:', report);
             
-            // 填充表单数据
+            // 基本信息
             $('input[name="id"]').val(report.id || '');
             $('input[name="report_no"]').val(report.reportNo || report.reportNoEn || '');
-            console.log('设置PM_no前的表单值:', $('input[name="PM_no"]').val());  // 添加日志
-            $('input[name="PM_no"]').val(report.pmno || report.PMNo || '');  // 尝试两种可能的字段名
-            console.log('设置PM_no后的表单值:', $('input[name="PM_no"]').val());  // 添加日志
+            $('input[name="PM_no"]').val(report.pmno || report.PMNo || '');
             $('input[name="report_date"]').val(report.reportDate ? report.reportDate.split('T')[0] : '');
             $('select[name="reporter"]').val(report.reporter || '');
             $('input[name="customer_name"]').val(report.customerName || '');
@@ -594,6 +415,8 @@ function loadReportDetail(id) {
             $('input[name="injury_type"]').val(report.injuryType || '');
             $('input[name="injury"]').val(report.injury || '');
             $('textarea[name="device_malfunction_desc"]').val(report.deviceMalfunctionDesc || '');
+            
+            // 患者信息
             $('input[name="patient_name"]').val(report.patientName || '');
             $('input[name="birth_date"]').val(report.birthDate ? report.birthDate.split('T')[0] : '');
             $('input[name="age"]').val(report.age || '');
@@ -634,7 +457,7 @@ function loadReportDetail(id) {
             $('input[name="tel_en"]').val(report.telEn || '');
             $('input[name="occurrence_place_en"]').val(report.occurrencePlaceEn || '');
             
-            // 其他英文字段
+            // 医疗器械情况（英文）
             $('input[name="product_name_en"]').val(report.productNameEn || '');
             $('input[name="registration_no_en"]').val(report.registrationNoEn || '');
             $('input[name="module_en"]').val(report.moduleEn || '');
@@ -647,6 +470,44 @@ function loadReportDetail(id) {
             $('input[name="udi_en"]').val(report.udiEn || '');
             $('input[name="manufacturing_date_en"]').val(report.manufacturingDateEn ? report.manufacturingDateEn.split('T')[0] : '');
             $('input[name="expiration_date_en"]').val(report.expirationDateEn ? report.expirationDateEn.split('T')[0] : '');
+            
+            // 不良事件情况（英文）
+            $('input[name="event_occurrence_date_en"]').val(report.eventOccurrenceDateEn ? report.eventOccurrenceDateEn.split('T')[0] : '');
+            $('input[name="knowledge_date_en"]').val(report.knowledgeDateEn ? report.knowledgeDateEn.split('T')[0] : '');
+            $('input[name="injury_type_en"]').val(report.injuryTypeEn || '');
+            $('input[name="injury_en"]').val(report.injuryEn || '');
+            $('textarea[name="device_malfunction_desc_en"]').val(report.deviceMalfunctionDescEn || '');
+            
+            // 患者信息（英文）
+            $('input[name="patient_name_en"]').val(report.patientNameEn || '');
+            $('input[name="birth_date_en"]').val(report.birthDateEn ? report.birthDateEn.split('T')[0] : '');
+            $('input[name="age_en"]').val(report.ageEn || '');
+            $('input[name="gender_en"]').val(report.genderEn || '');
+            $('input[name="medical_record_no_en"]').val(report.medicalRecordNoEn || '');
+            $('textarea[name="medical_history_en"]').val(report.medicalHistoryEn || '');
+            
+            // 使用情况（英文）
+            $('textarea[name="disease_intended_en"]').val(report.diseaseIntendedEn || '');
+            $('input[name="usage_date_en"]').val(report.usageDateEn ? report.usageDateEn.split('T')[0] : '');
+            $('input[name="usage_site_en"]').val(report.usageSiteEn || '');
+            $('input[name="institution_name_en"]').val(report.institutionNameEn || '');
+            $('textarea[name="usage_process_en"]').val(report.usageProcessEn || '');
+            $('textarea[name="drug_device_comb_desc_en"]').val(report.drugDeviceCombDescEn || '');
+            
+            // 事件调查（英文）
+            $('input[name="investigation_flag_en"]').val(report.investigationFlagEn || '');
+            $('textarea[name="investigation_desc_en"]').val(report.investigationDescEn || '');
+            
+            // 评价结果（英文）
+            $('input[name="relative_evaluation_en"]').val(report.relativeEvaluationEn || '');
+            $('textarea[name="event_reason_analysis_en"]').val(report.eventReasonAnalysisEn || '');
+            $('input[name="need_risk_assessment_en"]').val(report.needRiskAssessmentEn || '');
+            $('input[name="plan_submit_date_en"]').val(report.planSubmitDateEn ? report.planSubmitDateEn.split('T')[0] : '');
+            
+            // 控制措施（英文）
+            $('input[name="has_control_measure_en"]').val(report.hasControlMeasureEn || '');
+            $('textarea[name="control_measure_details_en"]').val(report.controlMeasureDetailsEn || '');
+            $('textarea[name="no_control_measure_reason_en"]').val(report.noControlMeasureReasonEn || '');
             
             console.log('数据加载成功，表单已更新');
             showToast('数据加载成功', 'success');

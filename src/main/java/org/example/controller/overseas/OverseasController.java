@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import javax.servlet.http.HttpServletResponse;
 import com.alibaba.excel.EasyExcel;
@@ -30,6 +31,14 @@ import javax.servlet.ServletOutputStream;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.ArrayList;
+import com.alibaba.excel.write.handler.SheetWriteHandler;
+import com.alibaba.excel.write.metadata.holder.WriteWorkbookHolder;
+import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 @Controller
 @RequestMapping("/overseas")
@@ -393,6 +402,144 @@ public class OverseasController {
 
         out.flush();
         out.close();
+    }
+
+    @PostMapping("/api/report/export-template")
+    public void exportTemplate(@RequestBody Map<String, Object> reportData, HttpServletResponse response) throws IOException {
+        try {
+            // 读取模板文件
+            String templatePath = "src/main/resources/report_template.xlsx";
+            File templateFile = new File(templatePath);
+            if (!templateFile.exists()) {
+                throw new IOException("模板文件不存在：" + templatePath);
+            }
+
+            // 设置响应头
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String fileName = URLEncoder.encode("报告详情.xlsx", "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+
+            // 使用EasyExcel写入数据
+            try (ServletOutputStream out = response.getOutputStream()) {
+                // 创建一个新的Excel文件
+                Workbook workbook = WorkbookFactory.create(templateFile);
+                Sheet sheet = workbook.getSheetAt(0);
+
+                // 填充数据
+                fillCell(sheet, 5, 2, (String)reportData.get("pm_no")); // 报告编号
+                fillCell(sheet, 8, 2, (String)reportData.get("report_date")); // 报告日期
+                fillCell(sheet, 11, 2, (String)reportData.get("reporter")); // 报告人
+                fillCell(sheet, 12, 2, (String)reportData.get("reporter_en")); // 报告人
+                fillCell(sheet, 14, 2, (String)reportData.get("customer_name")); // 客户名称
+                fillCell(sheet, 15, 2, (String)reportData.get("customer_name_en")); // 客户名称
+                fillCell(sheet, 17, 2, (String)reportData.get("address")); // 联系地址
+                fillCell(sheet, 18, 2, (String)reportData.get("address_en")); // 联系地址
+                fillCell(sheet, 20, 2, (String)reportData.get("contact_person")); // 联系人
+                fillCell(sheet, 21, 2, (String)reportData.get("contact_person_en")); // 联系人
+                fillCell(sheet, 23, 2, (String)reportData.get("tel")); // 联系电话
+                fillCell(sheet, 26, 2, (String)reportData.get("occurrence_place")); // 发生地
+                fillCell(sheet, 27, 2, (String)reportData.get("occurrence_place_en")); // 发生地
+                
+                // 医疗器械情况
+                fillCell(sheet, 31, 2, (String)reportData.get("product_name")); // 产品名称
+                fillCell(sheet, 32, 2, (String)reportData.get("product_name_en")); // 产品名称
+                fillCell(sheet, 34, 2, (String)reportData.get("registration_no")); // 注册证编号
+                fillCell(sheet, 37, 2, (String)reportData.get("module")); // 型号
+                fillCell(sheet, 40, 2, (String)reportData.get("product_package")); // 规格
+                fillCell(sheet, 43, 2, (String)reportData.get("origin_country")); // 产地
+                fillCell(sheet, 44, 2, (String)reportData.get("origin_country_en")); // 产地
+                fillCell(sheet, 46, 2, (String)reportData.get("class_type")); // 管理类别
+                fillCell(sheet, 47, 2, (String)reportData.get("class_type_en")); // 管理类别
+                fillCell(sheet, 49, 2, (String)reportData.get("product_type")); // 产品类别
+                fillCell(sheet, 50, 2, (String)reportData.get("product_type_en")); // 产品类别
+                fillCell(sheet, 52, 2, (String)reportData.get("product_lot")); // 产品批号
+                fillCell(sheet, 55, 2, (String)reportData.get("product_no")); // 产品编号
+                fillCell(sheet, 58, 2, (String)reportData.get("udi")); // UDI
+                fillCell(sheet, 60, 2, (String)reportData.get("manufacturing_date")); // 生产日期
+                fillCell(sheet, 63, 2, (String)reportData.get("expiration_date")); // 有效期至
+                
+                // 不良事件情况
+                fillCell(sheet, 68, 2, (String)reportData.get("event_occurrence_date")); // 事件发生日期
+                fillCell(sheet, 71, 2, (String)reportData.get("knowledge_date")); // 发现或获知日期
+                fillCell(sheet, 74, 2, (String)reportData.get("injury_type")); // 伤害程度
+                fillCell(sheet, 75, 2, (String)reportData.get("injury_type_en")); // 伤害程度
+                fillCell(sheet, 77, 2, (String)reportData.get("injury")); // 伤害表现
+                fillCell(sheet, 78, 2, (String)reportData.get("injury_en")); // 伤害表现
+                fillCell(sheet, 80, 2, (String)reportData.get("device_malfunction_desc")); // 器械故障表现
+                fillCell(sheet, 81, 2, (String)reportData.get("device_malfunction_desc_en")); // 器械故障表现fillCell(sheet, 81, 2, (String)reportData.get("device_malfunction_desc_en")); // 器械故障表现
+                fillCell(sheet, 83, 2, (String)reportData.get("patient_name")); // 姓名
+                fillCell(sheet, 86, 2, (String)reportData.get("birth_date")); // 出生日期
+                fillCell(sheet, 89, 2, (String)reportData.get("age")); // 年龄
+                fillCell(sheet, 90, 2, (String)reportData.get("age_en")); // 年龄
+                fillCell(sheet, 92, 2, (String)reportData.get("gender")); // 性别
+                fillCell(sheet, 93, 2, (String)reportData.get("gender_en")); // 性别
+                fillCell(sheet, 95, 2, (String)reportData.get("medical_record_no")); // 病历号
+                fillCell(sheet, 96, 2, (String)reportData.get("medical_record_no_en")); // 病历号
+                fillCell(sheet, 98, 2, (String)reportData.get("medical_history")); // 既往病史
+                fillCell(sheet, 99, 2, (String)reportData.get("medical_history_en")); // 既往病史
+                
+                // 使用情况
+                fillCell(sheet, 102, 2, (String)reportData.get("disease_intended")); // 预期治疗疾病或作用
+                fillCell(sheet, 103, 2, (String)reportData.get("disease_intended_en")); // 预期治疗疾病或作用
+                fillCell(sheet, 105, 2, (String)reportData.get("usage_date")); // 器械使用日期
+                fillCell(sheet, 108, 2, (String)reportData.get("usage_site")); // 使用场所
+                fillCell(sheet, 109, 2, (String)reportData.get("usage_site_en")); // 使用场所
+                fillCell(sheet, 111, 2, (String)reportData.get("institution_name")); // 场所名称
+                fillCell(sheet, 112, 2, (String)reportData.get("institution_name_en")); // 场所名称
+                fillCell(sheet, 114, 2, (String)reportData.get("usage_process")); // 使用过程
+                fillCell(sheet, 115, 2, (String)reportData.get("usage_process_en")); // 使用过程
+                fillCell(sheet, 117, 2, (String)reportData.get("drug_device_comb_desc")); // 合并用药/械情况说明
+                fillCell(sheet, 118, 2, (String)reportData.get("drug_device_comb_desc_en")); // 合并用药/械情况说明
+                
+                // 事件调查
+                fillCell(sheet, 122, 2, (String)reportData.get("investigation_flag")); // 是否开展了调查
+                fillCell(sheet, 123, 2, (String)reportData.get("investigation_flag_en")); // 是否开展了调查
+                 fillCell(sheet, 125, 2, (String)reportData.get("investigation_desc")); // 调查情况
+                fillCell(sheet, 126, 2, (String)reportData.get("investigation_desc_en")); // 调查情况
+                
+                // 评价结果
+                fillCell(sheet, 130, 2, (String)reportData.get("relative_evaluation")); // 关联性评价\
+                fillCell(sheet, 131, 2, (String)reportData.get("relative_evaluation_en")); // 关联性评价
+                fillCell(sheet, 133, 2, (String)reportData.get("event_reason_analysis")); // 事件原因分析
+                fillCell(sheet, 134, 2, (String)reportData.get("event_reason_analysis_en")); // 事件原因分析
+                fillCell(sheet, 136, 2, (String)reportData.get("need_risk_assessment")); // 是否需要开展产品风险评价
+                fillCell(sheet, 137, 2, (String)reportData.get("need_risk_assessment_en")); // 是否需要开展产品风险评价
+                fillCell(sheet, 139, 2, (String)reportData.get("plan_submit_date")); // 计划提交时间
+                fillCell(sheet, 140, 2, (String)reportData.get("plan_submit_date_en")); // 计划提交时间
+                
+                // 控制措施
+                fillCell(sheet, 144, 2, (String)reportData.get("has_control_measure")); // 是否已采取控制措施
+                fillCell(sheet, 145, 2, (String)reportData.get("has_control_measure_en")); // 是否已采取控制措施
+                fillCell(sheet, 147, 2, (String)reportData.get("control_measure_details")); // 具体控制措施
+                fillCell(sheet, 148, 2, (String)reportData.get("control_measure_details_en")); // 具体控制措施
+                fillCell(sheet, 150, 2, (String)reportData.get("no_control_measure_reason")); // 未采取控制措施原因
+                fillCell(sheet, 151, 2, (String)reportData.get("no_control_measure_reason_en")); // 未采取控制措施原因
+
+
+                // 写入输出流
+                workbook.write(out);
+                workbook.close();
+            }
+        } catch (Exception e) {
+            logger.error("导出报告失败", e);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\":\"导出失败：" + e.getMessage() + "\"}");
+        }
+    }
+
+    private void fillCell(Sheet sheet, int rowNum, int colNum, String value) {
+        if (value != null) {
+            Row row = sheet.getRow(rowNum);
+            if (row == null) {
+                row = sheet.createRow(rowNum);
+            }
+            Cell cell = row.getCell(colNum);
+            if (cell == null) {
+                cell = row.createCell(colNum);
+            }
+            cell.setCellValue(value);
+        }
     }
 
     private String n(Object o) { return o == null ? "" : o.toString(); }
