@@ -125,6 +125,9 @@
                     <button class="btn btn-primary" id="batchExportBtn" disabled>
                         <i class="bi bi-download me-1"></i>批量导出
                     </button>
+                    <button class="btn btn-warning" id="autoFillCodeBtn">
+                        <i class="bi bi-pencil-square me-1"></i>一键填写报告编码
+                    </button>
                     <a href="overseas-report-add.html" class="btn btn-success">
                         <i class="bi bi-plus-circle me-1"></i>新增报告
                     </a>
@@ -218,6 +221,33 @@
         </div>
     </div>
 
+    <!-- 文件上传模态框 -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLabel">上传Excel文件</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <div class="mb-3">
+                            <label for="excelFile" class="form-label">选择Excel文件</label>
+                            <input type="file" class="form-control" id="excelFile" accept=".xls,.xlsx" required>
+                        </div>
+                    </form>
+                    <div id="uploadProgress" class="progress d-none">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="uploadBtn">上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -253,6 +283,82 @@
                     console.log('选中的报告ID:', selectedIds);
                 }
             });
+
+            // 一键填写报告编码按钮点击事件
+            $('#autoFillCodeBtn').click(function() {
+                const selectedIds = $('.report-checkbox:checked').map(function() {
+                    return $(this).data('id');
+                }).get();
+                
+                if (selectedIds.length === 0) {
+                    showToast('请先选择需要填写报告编码的记录');
+                    return;
+                }
+                
+                // 显示上传模态框
+                const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                uploadModal.show();
+            });
+
+            // 文件上传按钮点击事件
+            $('#uploadBtn').click(function() {
+                const fileInput = $('#excelFile')[0];
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showToast('请选择要上传的Excel文件');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // 显示进度条
+                $('#uploadProgress').removeClass('d-none');
+                
+                $.ajax({
+                    url: '/overseas/api/reports/upload-excel',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function() {
+                        const xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function(e) {
+                            if (e.lengthComputable) {
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                $('.progress-bar').css('width', percent + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function(response) {
+                        showToast('文件上传成功，正在处理数据...');
+                        // 关闭模态框
+                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                        // 刷新页面或更新表格数据
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    },
+                    error: function(xhr, status, error) {
+                        showToast('上传失败：' + error);
+                    },
+                    complete: function() {
+                        // 隐藏进度条
+                        $('#uploadProgress').addClass('d-none');
+                        $('.progress-bar').css('width', '0%');
+                    }
+                });
+            });
+
+            // 显示提示信息
+            function showToast(message) {
+                const toast = $('#toast');
+                toast.find('.toast-body').text(message);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+            }
         });
     </script>
     <script src="../js/overseas-table.js"></script>

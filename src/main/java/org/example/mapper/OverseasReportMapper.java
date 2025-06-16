@@ -217,4 +217,7 @@ public interface OverseasReportMapper {
         "</script>"
     })
     List<OverseasReport> findByIds(List<Long> ids);
+
+    @Update("UPDATE overseas_reports SET PM_no = #{reportCode}, updated_at = CURRENT_TIMESTAMP WHERE LEFT(device_malfunction_desc, 15) = #{reportId}")
+    void updateReportCode(@Param("reportId") String reportId, @Param("reportCode") String reportCode);
 } 

@@ -41,8 +41,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import java.nio.file.StandardCopyOption;
 import java.time.format.DateTimeFormatter;
+import org.springframework.web.multipart.MultipartFile;
+import org.apache.poi.ss.usermodel.CellType;
 
-@Controller
+@RestController
 @RequestMapping("/overseas")
 public class OverseasController {
     private static final Logger logger = LoggerFactory.getLogger(OverseasController.class);
@@ -70,7 +72,6 @@ public class OverseasController {
 
     // API接口
     @GetMapping("/api/report/list")
-    @ResponseBody
     public ResponseEntity<?> getReportList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -562,6 +563,50 @@ public class OverseasController {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("{\"message\":\"导出失败：" + e.getMessage() + "\"}");
+        }
+    }
+
+    // 添加文件上传接口
+    @PostMapping("/api/reports/upload-excel")
+    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "请选择要上传的文件"));
+            }
+
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "请上传Excel文件(.xls或.xlsx)"));
+            }
+
+            // 读取Excel文件
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            // 获取选中的报告ID列表
+            List<Long> selectedIds = new ArrayList<>();
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) continue; // 跳过表头
+                
+                Cell idCell = row.getCell(0);
+                if (idCell != null && idCell.getCellType() == CellType.NUMERIC) {
+                    selectedIds.add((long) idCell.getNumericCellValue());
+                }
+            }
+
+            // 更新报告编码
+            int updatedCount = reportService.updateReportCodes(selectedIds, sheet);
+            
+            workbook.close();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", String.format("成功更新 %d 条记录的报告编码", updatedCount)
+            ));
+        } catch (Exception e) {
+            logger.error("处理Excel文件失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", "处理文件失败：" + e.getMessage()));
         }
     }
 

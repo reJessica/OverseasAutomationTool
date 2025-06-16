@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 
 import java.util.List;
 import java.util.Map;
@@ -231,5 +234,40 @@ public class OverseasReportService {
             logger.error("批量查找报告失败", e);
             throw new RuntimeException("批量查找报告失败：" + e.getMessage());
         }
+    }
+
+    @Transactional
+    public int updateReportCodes(List<Long> selectedIds, Sheet sheet) {
+        try {
+            int updatedCount = 0;
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                // 获取reportId（第31列，索引为30）的前15个字符
+                Cell idCell = row.getCell(30);
+                if (idCell == null) continue;
+                String idStr = idCell.getStringCellValue();
+                if (idStr == null || idStr.trim().isEmpty()) continue;
+                String reportId = idStr.trim().substring(0, Math.min(15, idStr.trim().length()));
+
+                // 获取报告编码（第0列）
+                Cell codeCell = row.getCell(0);
+                if (codeCell == null) continue;
+                String reportCode = codeCell.getStringCellValue();
+                if (reportCode == null || reportCode.trim().isEmpty()) continue;
+
+                overseasReportMapper.updateReportCode(reportId, reportCode.trim());
+                updatedCount++;
+            }
+            return updatedCount;
+        } catch (Exception e) {
+            throw new RuntimeException("更新报告编码失败：" + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void updateReportCode(String reportNo, String reportCode) {
+        overseasReportMapper.updateReportCode(reportNo, reportCode);
     }
 } 
