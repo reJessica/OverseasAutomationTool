@@ -198,6 +198,25 @@ public class OverseasReportService {
             }
             
             logger.info("最终product_type: {}", productInfo.get("product_type"));
+
+            if (productInfo != null && productInfo.containsKey("smn")) {
+                String smn = (String) productInfo.get("smn");
+                Map<String, Object> certInfo = overseasReportMapper.getCertificateInfoBySMN(smn);
+                if (certInfo != null) {
+                    String classType = (String) certInfo.get("class_type");
+                    if ("1".equals(classType)) {
+                        productInfo.put("class_type", "Ⅰ类");
+                        productInfo.put("class_type_en", "Class Ⅰ");
+                    } else if ("2".equals(classType)) {
+                        productInfo.put("class_type", "Ⅱ类");
+                        productInfo.put("class_type_en", "Class Ⅱ");
+                    } else if ("3".equals(classType)) {
+                        productInfo.put("class_type", "Ⅲ 类");
+                        productInfo.put("class_type_en", "Class Ⅲ");
+                    }
+                }
+            }
+
             return productInfo;
         } catch (Exception e) {
             logger.error("获取产品信息失败", e);

@@ -197,10 +197,16 @@ public interface OverseasReportMapper {
         "SFDALicense_产品类别_设备_耗材 as product_type, " +
         "SFDALicense_产品类别_设备_耗材 as product_type_en, " +
         "EAN_UPC_DI as udi, " +
-        "EAN_UPC_DI as udi_en " +
+        "EAN_UPC_DI as udi_en, " +
+        "SMN as smn " +
         "FROM material_list " +
         "WHERE `SMN` = #{productNo}")
     Map<String, Object> getProductInfoByNo(String productNo);
+
+    @Select("SELECT `Class` as class_type " +
+        "FROM certificate_list " +
+        "WHERE `SMN` = #{smn}")
+    Map<String, Object> getCertificateInfoBySMN(String smn);
 
     @Select({
         "<script>",
