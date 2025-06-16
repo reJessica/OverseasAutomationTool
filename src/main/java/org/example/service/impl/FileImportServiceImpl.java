@@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
@@ -68,6 +70,75 @@ public class FileImportServiceImpl implements FileImportService {
         return inputStream;
     }
 
+    /**
+     * 处理重复的列名
+     * @param headers 原始表头数组
+     * @return 处理后的表头数组
+     */
+    private String[] handleDuplicateHeaders(String[] headers) {
+        Map<String, Integer> headerCount = new HashMap<>();
+        String[] normalizedHeaders = new String[headers.length];
+        
+        for (int i = 0; i < headers.length; i++) {
+            String normalizedHeader = normalizeColumnName(headers[i]);
+            headerCount.put(normalizedHeader, headerCount.getOrDefault(normalizedHeader, 0) + 1);
+            
+            if (headerCount.get(normalizedHeader) > 1) {
+                // 如果是重复的Title列，第二个改为Title_1
+                if (normalizedHeader.equals("Title")) {
+                    normalizedHeaders[i] = "Title_1";
+                } else {
+                    // 其他重复列名添加数字后缀
+                    normalizedHeaders[i] = normalizedHeader + "_" + headerCount.get(normalizedHeader);
+                }
+            } else {
+                normalizedHeaders[i] = normalizedHeader;
+            }
+        }
+        
+        return normalizedHeaders;
+    }
+
+    /**
+     * 处理日期值
+     * @param value 输入的日期字符串
+     * @return 处理后的日期值
+     */
+    private Object handleDateValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return java.sql.Date.valueOf(value.trim());
+        } catch (Exception e) {
+            logger.warn("无效的日期格式: {}", value);
+            return null;
+        }
+    }
+
+    /**
+     * 处理数据行
+     * @param line 原始数据行
+     * @param headers 表头
+     * @return 处理后的数据行
+     */
+    private Object[] processRowData(String[] line, String[] headers) {
+        Object[] rowData = new Object[line.length];
+        for (int i = 0; i < line.length; i++) {
+            String value = line[i] != null ? line[i].trim() : null;
+            
+            // 检查列名是否包含日期相关字段
+            if (headers[i].toLowerCase().contains("date") || 
+                headers[i].toLowerCase().contains("created") || 
+                headers[i].toLowerCase().contains("modified")) {
+                rowData[i] = handleDateValue(value);
+            } else {
+                rowData[i] = value;
+            }
+        }
+        return rowData;
+    }
+
     @Override
     public void importCsv(MultipartFile file, String tableName) throws Exception {
         if (!isImporting.compareAndSet(false, true)) {
@@ -104,11 +175,8 @@ public class FileImportServiceImpl implements FileImportService {
 
                 logger.info("原始CSV表头: {}", String.join(", ", headers));
 
-                // 规范化列名
-                String[] normalizedHeaders = new String[headers.length];
-                for (int i = 0; i < headers.length; i++) {
-                    normalizedHeaders[i] = normalizeColumnName(headers[i]);
-                }
+                // 处理重复的列名
+                String[] normalizedHeaders = handleDuplicateHeaders(headers);
 
                 logger.info("规范化后的表头: {}", String.join(", ", normalizedHeaders));
 
@@ -124,11 +192,8 @@ public class FileImportServiceImpl implements FileImportService {
                         continue;
                     }
 
-                    // 将String[]转换为Object[]
-                    Object[] rowData = new Object[line.length];
-                    for (int i = 0; i < line.length; i++) {
-                        rowData[i] = line[i] != null ? line[i].trim() : null;
-                    }
+                    // 处理数据行
+                    Object[] rowData = processRowData(line, normalizedHeaders);
                     batch.add(rowData);
                     count++;
 

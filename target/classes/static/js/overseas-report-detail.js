@@ -728,8 +728,8 @@ function autoFillProductInfo() {
                 $('input[name="registration_no_en"]').val(response.data.registration_no_en || '');
                 $('input[name="origin_country"]').val('进口');
                 $('input[name="origin_country_en"]').val('import');
-                // $('input[name="class_type"]').val(response.data.class_type || '');
-                // $('input[name="class_type_en"]').val(response.data.class_type_en || '');
+                $('input[name="class_type"]').val(response.data.class_type || '');
+                $('input[name="class_type_en"]').val(response.data.class_type_en || '');
                 $('input[name="product_type"]').val(response.data.product_type || '');
                 $('input[name="product_type_en"]').val(response.data.product_type_en || '');
                 $('input[name="udi"]').val(response.data.udi || '');
